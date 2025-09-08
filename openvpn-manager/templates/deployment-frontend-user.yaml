@@ -1,0 +1,165 @@
+{{- if and .Values.frontend.enabled .Values.frontend.userService.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "openvpn-manager.frontend.fullname" . }}-user
+  labels:
+    {{- include "openvpn-manager.labels" . | nindent 4 }}
+    app.kubernetes.io/component: frontend-user
+spec:
+  {{- if not .Values.frontend.autoscaling.enabled }}
+  replicas: {{ .Values.frontend.userService.replicaCount }}
+  {{- end }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      {{- include "openvpn-manager.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: frontend-user
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        checksum/secret: {{ include (print $.Template.BasePath "/secrets.yaml") . | sha256sum }}
+      labels:
+        {{- include "openvpn-manager.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: frontend-user
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "openvpn-manager.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: frontend-user
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: {{ include "openvpn-manager.image" (dict "registry" .Values.image.registry "repository" .Values.image.repository "component" "frontend" "tag" .Values.frontend.image.tag "Chart" .Chart "Values" .Values) }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.frontend.service.port }}
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 30
+            failureThreshold: 5
+          env:
+            - name: ENVIRONMENT
+              value: {{ .Values.frontend.config.environment | quote }}
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "openvpn-manager.fullname" . }}-db-users
+                  key: frontend-uri
+            - name: LOG_LEVEL
+              value: {{ .Values.frontend.config.logLevel | quote }}
+            - name: SIGNING_SERVICE_URL
+              value: "http://{{ include "openvpn-manager.signing.fullname" . }}:{{ .Values.signing.service.port }}"
+            - name: SIGNING_SERVICE_API_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.signingApiSecret.name | default (printf "%s-signing-api-secret" (include "openvpn-manager.fullname" .)) }}
+                  key: {{ .Values.secrets.signingApiSecret.key | default "api-secret" }}
+            - name: CERTTRANSPARENCY_SERVICE_URL
+              value: "http://{{ include "openvpn-manager.certtransparency.fullname" . }}:{{ .Values.certtransparency.service.port }}/api/v1"
+            - name: OIDC_DISCOVERY_URL
+              value: {{ .Values.frontend.config.oidc.discoveryUrl | quote }}
+            - name: OIDC_CLIENT_ID
+              value: {{ .Values.frontend.config.oidc.clientId | quote }}
+            - name: OIDC_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.oidcClientSecret.name | default (printf "%s-oidc-client-secret" (include "openvpn-manager.fullname" .)) }}
+                  key: {{ .Values.secrets.oidcClientSecret.key | default "client-secret" }}
+            - name: OIDC_ADMIN_GROUP
+              value: {{ .Values.frontend.config.oidc.adminGroup | quote }}
+            - name: OPENVPN_SERVER_HOSTNAME
+              value: {{ .Values.frontend.config.openvpnServerHostname | quote }}
+            - name: FLASK_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.flaskSecretKey.frontend.name | default (printf "%s-flask-secret-key-frontend" (include "openvpn-manager.fullname" .)) }}
+                  key: {{ .Values.secrets.flaskSecretKey.frontend.key | default "flask-secret-key" }}
+            - name: FERNET_ENCRYPTION_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.fernet.name | default (printf "%s-fernet" (include "openvpn-manager.fullname" .)) }}
+                  key: {{ .Values.secrets.fernet.key | default "fernet-key" }}
+            - name: SITE_NAME
+              value: {{ .Values.frontend.userService.siteName | default "VPN User Service" | quote }}
+            - name: ADMIN_URL_BASE
+              value: {{ .Values.frontend.adminService.urlBase | quote }}
+            - name: OVPN_TEMPLATE_PATH
+              value: "/app/openvpn_templates"
+            - name: SERVER_TEMPLATES_DIR
+              value: "/app/server_templates"
+            - name: OVPN_OPTIONS_PATH
+              value: "/app/openvpn_options.yaml"
+            - name: ROOT_CA_CERTIFICATE_FILE
+              value: "/app/pki/root-ca.crt"
+            - name: INTERMEDIATE_CA_CERTIFICATE_FILE
+              value: "/app/pki/intermediate-ca.crt"
+          resources:
+            {{- toYaml .Values.frontend.resources | nindent 12 }}
+          volumeMounts:
+            - name: pki-certs
+              mountPath: /app/pki
+              readOnly: true
+            - name: openvpn-templates
+              mountPath: /app/openvpn_templates
+              readOnly: true
+            - name: server-templates
+              mountPath: /app/server_templates
+              readOnly: true
+            - name: openvpn-options
+              mountPath: /app/openvpn_options.yaml
+              subPath: openvpn_options.yaml
+              readOnly: true
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: pki-certs
+          secret:
+            secretName: {{ .Values.secrets.pkiCert.name | default (printf "%s-pki-cert" (include "openvpn-manager.fullname" .)) }}
+        - name: openvpn-templates
+          configMap:
+            name: {{ include "openvpn-manager.fullname" . }}-openvpn-templates
+        - name: server-templates
+          configMap:
+            name: {{ include "openvpn-manager.fullname" . }}-server-templates
+        - name: openvpn-options
+          configMap:
+            name: {{ include "openvpn-manager.fullname" . }}-openvpn-options
+        - name: tmp
+          emptyDir: {}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

@@ -1,0 +1,122 @@
+{{- if .Values.signing.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "openvpn-manager.signing.fullname" . }}
+  labels:
+    {{- include "openvpn-manager.labels" . | nindent 4 }}
+    app.kubernetes.io/component: signing
+spec:
+  replicas: {{ .Values.signing.replicaCount }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      {{- include "openvpn-manager.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: signing
+  template:
+    metadata:
+      annotations:
+        checksum/secret: {{ include (print $.Template.BasePath "/secrets.yaml") . | sha256sum }}
+      labels:
+        {{- include "openvpn-manager.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: signing
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "openvpn-manager.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: signing
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: {{ include "openvpn-manager.image" (dict "registry" .Values.image.registry "repository" .Values.image.repository "component" "signing" "tag" .Values.signing.image.tag "Chart" .Chart "Values" .Values) }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.signing.service.port }}
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          env:
+            - name: ENVIRONMENT
+              value: {{ .Values.signing.config.environment | quote }}
+            - name: LOG_LEVEL
+              value: {{ .Values.signing.config.logLevel | quote }}
+            - name: INTERMEDIATE_CA_KEY_PASSPHRASE
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.caKeyPassphrase.name | default (printf "%s-ca-key-passphrase" (include "openvpn-manager.fullname" .)) }}
+                  key: {{ .Values.secrets.caKeyPassphrase.key | default "passphrase" }}
+            - name: SIGNING_SERVICE_API_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.signingApiSecret.name | default (printf "%s-signing-api-secret" (include "openvpn-manager.fullname" .)) }}
+                  key: {{ .Values.secrets.signingApiSecret.key | default "api-secret" }}
+            - name: CERTTRANSPARENCY_SERVICE_URL
+              value: "http://{{ include "openvpn-manager.certtransparency.fullname" . }}:{{ .Values.certtransparency.service.port }}/api/v1"
+            - name: CT_SERVICE_API_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.ctApiSecret.name | default (printf "%s-ct-api-secret" (include "openvpn-manager.fullname" .)) }}
+                  key: {{ .Values.secrets.ctApiSecret.key | default "api-secret" }}
+            - name: FLASK_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.flaskSecretKey.signing.name | default (printf "%s-flask-secret-key-signing" (include "openvpn-manager.fullname" .)) }}
+                  key: {{ .Values.secrets.flaskSecretKey.signing.key | default "flask-secret-key" }}
+            - name: INTERMEDIATE_CA_KEY_FILE
+              value: /pki-key/intermediate-ca.key
+          resources:
+            {{- toYaml .Values.signing.resources | nindent 12 }}
+          volumeMounts:
+            - name: pki-certs
+              mountPath: /pki
+              readOnly: true
+            - name: pki-keys
+              mountPath: /pki-key
+              readOnly: true
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: pki-certs
+          secret:
+            secretName: {{ .Values.secrets.pkiCert.name | default (printf "%s-pki-cert" (include "openvpn-manager.fullname" .)) }}
+        - name: pki-keys
+          secret:
+            secretName: {{ .Values.secrets.pkiKey.name | default (printf "%s-pki-key" (include "openvpn-manager.fullname" .)) }}
+        - name: tmp
+          emptyDir: {}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

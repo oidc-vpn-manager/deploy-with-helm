@@ -1,0 +1,22 @@
+apiVersion: v2
+name: openvpn-manager
+description: A comprehensive OpenVPN certificate management system with OIDC authentication and Certificate Transparency logging
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+home: https://github.com/your-org/openvpn-manager
+sources:
+  - https://github.com/your-org/openvpn-manager
+keywords:
+  - openvpn
+  - vpn
+  - certificates
+  - pki
+  - oidc
+  - certificate-transparency
+maintainers:
+  - name: OpenVPN Manager Team
+    email: maintainers@example.com
+annotations:
+  category: Networking
+  licenses: MIT

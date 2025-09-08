@@ -1,0 +1,65 @@
+{{- if .Values.podDisruptionBudget.enabled }}
+{{- if .Values.frontend.enabled }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "openvpn-manager.frontend.fullname" . }}
+  labels:
+    {{- include "openvpn-manager.labels" . | nindent 4 }}
+    app.kubernetes.io/component: frontend
+spec:
+  {{- if .Values.podDisruptionBudget.minAvailable }}
+  minAvailable: {{ .Values.podDisruptionBudget.minAvailable }}
+  {{- end }}
+  {{- if .Values.podDisruptionBudget.maxUnavailable }}
+  maxUnavailable: {{ .Values.podDisruptionBudget.maxUnavailable }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "openvpn-manager.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: frontend
+---
+{{- end }}
+{{- if .Values.signing.enabled }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "openvpn-manager.signing.fullname" . }}
+  labels:
+    {{- include "openvpn-manager.labels" . | nindent 4 }}
+    app.kubernetes.io/component: signing
+spec:
+  {{- if .Values.podDisruptionBudget.minAvailable }}
+  minAvailable: {{ .Values.podDisruptionBudget.minAvailable }}
+  {{- end }}
+  {{- if .Values.podDisruptionBudget.maxUnavailable }}
+  maxUnavailable: {{ .Values.podDisruptionBudget.maxUnavailable }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "openvpn-manager.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: signing
+---
+{{- end }}
+{{- if .Values.certtransparency.enabled }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "openvpn-manager.certtransparency.fullname" . }}
+  labels:
+    {{- include "openvpn-manager.labels" . | nindent 4 }}
+    app.kubernetes.io/component: certtransparency
+spec:
+  {{- if .Values.podDisruptionBudget.minAvailable }}
+  minAvailable: {{ .Values.podDisruptionBudget.minAvailable }}
+  {{- end }}
+  {{- if .Values.podDisruptionBudget.maxUnavailable }}
+  maxUnavailable: {{ .Values.podDisruptionBudget.maxUnavailable }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "openvpn-manager.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: certtransparency
+---
+{{- end }}
+{{- end }}

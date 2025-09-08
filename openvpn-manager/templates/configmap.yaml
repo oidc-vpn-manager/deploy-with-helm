@@ -1,0 +1,36 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "openvpn-manager.fullname" . }}-openvpn-options
+  labels:
+    {{- include "openvpn-manager.labels" . | nindent 4 }}
+data:
+  openvpn_options.yaml: |
+{{- range $key, $item := .Values.clientTemplateOptions }}
+    {{ $key }}:
+{{ $item | toYaml | indent 6 }}
+{{- end }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "openvpn-manager.fullname" . }}-openvpn-templates
+  labels:
+    {{- include "openvpn-manager.labels" . | nindent 4 }}
+data:
+{{- range $key, $item := .Values.clientTemplates }}
+  {{ $key }}: |
+{{ $item | indent 4 }}
+{{- end }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "openvpn-manager.fullname" . }}-server-templates
+  labels:
+    {{- include "openvpn-manager.labels" . | nindent 4 }}
+data:
+{{- range $key, $item := .Values.serverTemplates }}
+  {{ $key }}: |
+{{ $item | indent 4 }}
+{{- end }}

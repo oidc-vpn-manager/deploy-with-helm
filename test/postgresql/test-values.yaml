@@ -1,0 +1,30 @@
+# Test values for PostgreSQL chart
+auth:
+  postgresPassword: "test123"
+  username: "postgres"
+  password: "test123"
+  database: "openvpn_manager_test"
+
+persistence:
+  enabled: true
+  size: 1Gi
+  
+resources:
+  limits:
+    cpu: 200m
+    memory: 256Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+podSecurityContext:
+  fsGroup: 999
+  runAsUser: 999
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  runAsNonRoot: true
+  runAsUser: 999

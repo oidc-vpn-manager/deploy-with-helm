@@ -1,0 +1,141 @@
+{{- if and .Values.frontend.enabled .Values.frontend.combinedService.enabled -}}
+{{- $fullName := include "openvpn-manager.fullname" . -}}
+{{- if semverCompare ">=1.19-0" .Capabilities.KubeVersion.GitVersion -}}
+apiVersion: networking.k8s.io/v1
+{{- else if semverCompare ">=1.14-0" .Capabilities.KubeVersion.GitVersion -}}
+apiVersion: networking.k8s.io/v1beta1
+{{- else -}}
+apiVersion: extensions/v1beta1
+{{- end }}
+kind: Ingress
+metadata:
+  name: {{ $fullName }}-combined
+  labels:
+    {{- include "openvpn-manager.labels" . | nindent 4 }}
+  {{- with .Values.frontend.combinedService.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if and .Values.frontend.combinedService.ingress.className (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion) }}
+  ingressClassName: {{ .Values.frontend.combinedService.ingress.className }}
+  {{- end }}
+  {{- if .Values.frontend.combinedService.ingress.tls }}
+  tls:
+    - hosts:
+        - {{ .Values.frontend.combinedService.ingress.host | quote }}
+      secretName: {{ .Values.frontend.combinedService.ingress.tlsSecretName }}
+  {{- end }}
+  rules:
+    - host: {{ .Values.frontend.combinedService.ingress.host | quote }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              {{- if semverCompare ">=1.19-0" .Capabilities.KubeVersion.GitVersion }}
+              service:
+                name: {{ include "openvpn-manager.frontend.fullname" . }}
+                port:
+                  number: {{ .Values.frontend.service.port }}
+              {{- else }}
+              serviceName: {{ include "openvpn-manager.frontend.fullname" . }}
+              servicePort: {{ .Values.frontend.service.port }}
+              {{- end }}
+---
+{{- end }}
+
+{{- if and .Values.frontend.enabled .Values.frontend.userService.enabled -}}
+{{- $fullName := include "openvpn-manager.fullname" . -}}
+{{- if semverCompare ">=1.19-0" .Capabilities.KubeVersion.GitVersion -}}
+apiVersion: networking.k8s.io/v1
+{{- else if semverCompare ">=1.14-0" .Capabilities.KubeVersion.GitVersion -}}
+apiVersion: networking.k8s.io/v1beta1
+{{- else -}}
+apiVersion: extensions/v1beta1
+{{- end }}
+kind: Ingress
+metadata:
+  name: {{ $fullName }}-user
+  labels:
+    {{- include "openvpn-manager.labels" . | nindent 4 }}
+  {{- with .Values.frontend.userService.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if and .Values.frontend.userService.ingress.className (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion) }}
+  ingressClassName: {{ .Values.frontend.userService.ingress.className }}
+  {{- end }}
+  {{- if .Values.frontend.userService.ingress.tls }}
+  tls:
+    - hosts:
+        - {{ .Values.frontend.userService.ingress.host | quote }}
+      secretName: {{ .Values.frontend.userService.ingress.tlsSecretName }}
+  {{- end }}
+  rules:
+    - host: {{ .Values.frontend.userService.ingress.host | quote }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              {{- if semverCompare ">=1.19-0" .Capabilities.KubeVersion.GitVersion }}
+              service:
+                name: {{ include "openvpn-manager.frontend.fullname" . }}-user
+                port:
+                  number: {{ .Values.frontend.service.port }}
+              {{- else }}
+              serviceName: {{ include "openvpn-manager.frontend.fullname" . }}-user
+              servicePort: {{ .Values.frontend.service.port }}
+              {{- end }}
+---
+{{- end }}
+
+{{- if and .Values.frontend.enabled .Values.frontend.adminService.enabled -}}
+{{- $fullName := include "openvpn-manager.fullname" . -}}
+{{- if semverCompare ">=1.19-0" .Capabilities.KubeVersion.GitVersion -}}
+apiVersion: networking.k8s.io/v1
+{{- else if semverCompare ">=1.14-0" .Capabilities.KubeVersion.GitVersion -}}
+apiVersion: networking.k8s.io/v1beta1
+{{- else -}}
+apiVersion: extensions/v1beta1
+{{- end }}
+kind: Ingress
+metadata:
+  name: {{ $fullName }}-admin
+  labels:
+    {{- include "openvpn-manager.labels" . | nindent 4 }}
+  {{- with .Values.frontend.adminService.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if and .Values.frontend.adminService.ingress.className (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion) }}
+  ingressClassName: {{ .Values.frontend.adminService.ingress.className }}
+  {{- end }}
+  {{- if .Values.frontend.adminService.ingress.tls }}
+  tls:
+    - hosts:
+        - {{ .Values.frontend.adminService.ingress.host | quote }}
+      secretName: {{ .Values.frontend.adminService.ingress.tlsSecretName }}
+  {{- end }}
+  rules:
+    - host: {{ .Values.frontend.adminService.ingress.host | quote }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              {{- if semverCompare ">=1.19-0" .Capabilities.KubeVersion.GitVersion }}
+              service:
+                name: {{ include "openvpn-manager.frontend.fullname" . }}-admin
+                port:
+                  number: {{ .Values.frontend.service.port }}
+              {{- else }}
+              serviceName: {{ include "openvpn-manager.frontend.fullname" . }}-admin
+              servicePort: {{ .Values.frontend.service.port }}
+              {{- end }}
+---
+{{- end }}
+

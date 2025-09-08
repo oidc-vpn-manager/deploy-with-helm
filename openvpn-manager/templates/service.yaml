@@ -1,0 +1,106 @@
+{{- if and .Values.frontend.enabled .Values.frontend.combinedService.enabled (not (or .Values.frontend.userService.enabled .Values.frontend.adminService.enabled)) }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "openvpn-manager.frontend.fullname" . }}
+  labels:
+    {{- include "openvpn-manager.labels" . | nindent 4 }}
+    app.kubernetes.io/component: frontend
+spec:
+  type: {{ .Values.frontend.service.type }}
+  ports:
+    - port: {{ .Values.frontend.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "openvpn-manager.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: frontend
+---
+{{- end }}
+
+{{- if and .Values.frontend.enabled .Values.frontend.userService.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "openvpn-manager.frontend.fullname" . }}-user
+  labels:
+    {{- include "openvpn-manager.labels" . | nindent 4 }}
+    app.kubernetes.io/component: frontend-user
+spec:
+  type: {{ .Values.frontend.service.type }}
+  ports:
+    - port: {{ .Values.frontend.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "openvpn-manager.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: frontend-user
+---
+{{- end }}
+
+{{- if and .Values.frontend.enabled .Values.frontend.adminService.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "openvpn-manager.frontend.fullname" . }}-admin
+  labels:
+    {{- include "openvpn-manager.labels" . | nindent 4 }}
+    app.kubernetes.io/component: frontend-admin
+spec:
+  type: {{ .Values.frontend.service.type }}
+  ports:
+    - port: {{ .Values.frontend.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "openvpn-manager.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: frontend-admin
+---
+{{- end }}
+
+{{- if .Values.signing.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "openvpn-manager.signing.fullname" . }}
+  labels:
+    {{- include "openvpn-manager.labels" . | nindent 4 }}
+    app.kubernetes.io/component: signing
+spec:
+  type: {{ .Values.signing.service.type }}
+  ports:
+    - port: {{ .Values.signing.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "openvpn-manager.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: signing
+---
+{{- end }}
+
+{{- if .Values.certtransparency.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "openvpn-manager.certtransparency.fullname" . }}
+  labels:
+    {{- include "openvpn-manager.labels" . | nindent 4 }}
+    app.kubernetes.io/component: certtransparency
+spec:
+  type: {{ .Values.certtransparency.service.type }}
+  ports:
+    - port: {{ .Values.certtransparency.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "openvpn-manager.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: certtransparency
+---
+{{- end }}
+
+

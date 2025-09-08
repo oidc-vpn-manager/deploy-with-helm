@@ -1,0 +1,158 @@
+{{- if or .Values.certtransparency.enabled (and .Values.frontend.enabled .Values.frontend.adminService.enabled) (and .Values.frontend.enabled .Values.frontend.userService.enabled) }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "openvpn-manager.fullname" . }}-db-setup
+  labels:
+    {{- include "openvpn-manager.labels" . | nindent 4 }}
+    app.kubernetes.io/component: db-setup
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-weight": "-4"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  template:
+    metadata:
+      labels:
+        {{- include "openvpn-manager.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: db-setup
+    spec:
+      restartPolicy: Never
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      initContainers:
+        {{- if or (and .Values.frontend.enabled .Values.frontend.adminService.enabled) (and .Values.frontend.enabled .Values.frontend.userService.enabled) }}
+        - name: wait-for-frontend-postgres
+          image: {{ .Values.postgresql.image.registry }}/{{ .Values.postgresql.image.repo }}:{{ .Values.postgresql.image.tag }}
+          command: 
+            - sh
+            - -c
+            - |
+              echo "Waiting for PostgreSQL to be ready..."
+              until pg_isready -h ${PGHOSTNAME} -U ${PGUSERNAME} -p ${PGPORT}
+              do 
+                echo "PostgreSQL not ready, waiting..."
+                sleep 2
+              done
+              echo "PostgreSQL is ready!"
+
+              echo "Checking ${PGDATABASE} database exists"
+              if ! psql -h ${PGHOSTNAME} -U ${PGUSERNAME} -p ${PGPORT} -d postgres -tc "SELECT 1 FROM pg_database WHERE datname = '${PGDATABASE}'" | grep -q 1
+              then
+                echo "Creating ${PGDATABASE} database..."
+                psql -h ${PGHOSTNAME} -U ${PGUSERNAME} -p ${PGPORT} -d postgres -c "CREATE DATABASE ${PGDATABASE};"
+                echo "Done"
+              fi
+              echo "Database ${PGDATABASE} exists!"
+          env:
+            - name: PGHOSTNAME
+              value: {{ required "You must specify a database host!" .Values.frontend.config.database.host | quote }}
+            - name: PGPORT
+              value: {{ .Values.frontend.config.database.port | default "5432" | quote }}
+            - name: PGUSERNAME
+              value: {{ required "You must specify a database user!" .Values.frontend.config.database.user | quote }}
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "openvpn-manager.fullname" . }}-db-users
+                  key: frontend-password
+            - name: PGDATABASE
+              value: {{ required "You must specify a database name!" .Values.frontend.config.database.name | quote }}
+        {{- end }}
+        {{- if .Values.certtransparency.enabled }}
+        - name: wait-for-certtransparency-postgres
+          image: {{ .Values.postgresql.image.registry }}/{{ .Values.postgresql.image.repo }}:{{ .Values.postgresql.image.tag }}
+          command: 
+            - sh
+            - -c
+            - |
+              echo "Waiting for PostgreSQL to be ready..."
+              until pg_isready -h ${PGHOSTNAME} -U ${PGUSERNAME} -p ${PGPORT}
+              do 
+                echo "PostgreSQL not ready, waiting..."
+                sleep 2
+              done
+              echo "PostgreSQL is ready!"
+
+              echo "Checking ${PGDATABASE} database exists"
+              if ! psql -h ${PGHOSTNAME} -U ${PGUSERNAME} -p ${PGPORT} -d postgres -tc "SELECT 1 FROM pg_database WHERE datname = '${PGDATABASE}'" | grep -q 1
+              then
+                echo "Creating ${PGDATABASE} database..."
+                psql -h ${PGHOSTNAME} -U ${PGUSERNAME} -p ${PGPORT} -d postgres -c "CREATE DATABASE ${PGDATABASE};"
+                echo "Done"
+              fi
+              echo "Database ${PGDATABASE} exists!"
+          env:
+            - name: PGHOSTNAME
+              value: {{ required "You must specify a database host!" .Values.certtransparency.config.database.host | quote }}
+            - name: PGPORT
+              value: {{ .Values.certtransparency.config.database.port | default "5432" | quote }}
+            - name: PGUSERNAME
+              value: {{ required "You must specify a database user!" .Values.certtransparency.config.database.user | quote }}
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "openvpn-manager.fullname" . }}-db-users
+                  key: certtransparency-password
+            - name: PGDATABASE
+              value: {{ required "You must specify a database name!" .Values.certtransparency.config.database.name | quote }}
+        {{- end }}
+      containers:
+        {{- if or (and .Values.frontend.enabled .Values.frontend.adminService.enabled) (and .Values.frontend.enabled .Values.frontend.userService.enabled) }}
+        - name: frontend-migration
+          image: {{ include "openvpn-manager.image" (dict "registry" .Values.image.registry "repository" .Values.image.repository "component" "frontend" "tag" .Values.frontend.image.tag "Chart" .Chart "Values" .Values) }}
+          command: ["./run_migrate.sh"]
+          env:
+            - name: ENVIRONMENT
+              value: {{ .Values.frontend.config.environment | quote }}
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "openvpn-manager.fullname" . }}-db-users
+                  key: frontend-uri
+            - name: FLASK_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.flaskSecretKey.frontend.name | default (printf "%s-flask-secret-key-frontend" (include "openvpn-manager.fullname" .)) }}
+                  key: {{ .Values.secrets.flaskSecretKey.frontend.key | default "flask-secret-key" }}
+            - name: FERNET_ENCRYPTION_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.fernet.name | default (printf "%s-fernet" (include "openvpn-manager.fullname" .)) }}
+                  key: {{ .Values.secrets.fernet.key | default "fernet-key" }}
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+        {{- end }}
+        {{- if .Values.certtransparency.enabled }}
+        - name: certtransparency-migration
+          image: {{ include "openvpn-manager.image" (dict "registry" .Values.image.registry "repository" .Values.image.repository "component" "certtransparency" "tag" .Values.certtransparency.image.tag "Chart" .Chart "Values" .Values) }}
+          command: ["./run_migrate.sh"]
+          env:
+            - name: ENVIRONMENT
+              value: {{ .Values.certtransparency.config.environment | quote }}
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "openvpn-manager.fullname" . }}-db-users
+                  key: certtransparency-uri
+            - name: FLASK_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.flaskSecretKey.certtransparency.name | default (printf "%s-flask-secret-key-certtransparency" (include "openvpn-manager.fullname" .)) }}
+                  key: {{ .Values.secrets.flaskSecretKey.certtransparency.key | default "flask-secret-key" }}
+            - name: FERNET_ENCRYPTION_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.fernet.name | default (printf "%s-fernet" (include "openvpn-manager.fullname" .)) }}
+                  key: {{ .Values.secrets.fernet.key | default "fernet-key" }}
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+        {{- end }}
+      volumes:
+        - name: tmp
+          emptyDir: {}
+{{- end }}

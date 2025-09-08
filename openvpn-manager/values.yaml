@@ -1,0 +1,478 @@
+# Default values for openvpn-manager
+# This is a YAML-formatted file.
+
+global:
+  storageClass: ""
+
+# Image configuration
+image:
+  registry: ghcr.io
+  repository: openvpn-manager
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: ""
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+# Service account configuration
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  name: ""
+
+# Security context
+podSecurityContext:
+  fsGroup: 1001
+  runAsNonRoot: true
+  runAsUser: 1001
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+    - ALL
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 1001
+
+# Frontend service configuration
+frontend:
+  enabled: true
+  # Legacy single frontend deployment (disabled when userService/adminService are enabled)
+  replicaCount: 2
+  image:
+    repository: frontend
+    tag: latest
+  service:
+    type: ClusterIP
+    port: 8600
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 250m
+      memory: 256Mi
+  autoscaling:
+    enabled: false
+    minReplicas: 2
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 80
+  # Combined service configuration (legacy single frontend)
+  combinedService:
+    enabled: false  # Disabled by default when user/admin services are enabled
+    ingress:
+      enabled: true
+      className: "nginx"
+      host: "vpn.example.com"
+      tls: true
+      tlsSecretName: "openvpn-manager-combined-tls"
+      annotations:
+        nginx.ingress.kubernetes.io/ssl-redirect: "true"
+        nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+        nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+        nginx.ingress.kubernetes.io/rate-limit: "100"
+        nginx.ingress.kubernetes.io/rate-limit-window: "1m"
+        cert-manager.io/cluster-issuer: "letsencrypt-prod"
+  # User service configuration
+  userService:
+    enabled: true
+    replicaCount: 1
+    siteName: "VPN User Service"
+    urlBase: "https://vpn.example.com"
+    ingress:
+      enabled: true
+      className: "nginx"
+      host: "vpn.example.com"
+      tls: true
+      tlsSecretName: "openvpn-manager-user-tls"
+      annotations:
+        nginx.ingress.kubernetes.io/ssl-redirect: "true"
+        nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+        nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+        nginx.ingress.kubernetes.io/rate-limit: "100"
+        nginx.ingress.kubernetes.io/rate-limit-window: "1m"
+        cert-manager.io/cluster-issuer: "letsencrypt-prod"
+  # Admin service configuration  
+  adminService:
+    enabled: true
+    replicaCount: 1
+    siteName: "VPN Admin Service"
+    urlBase: "https://admin.vpn.example.com"
+    ingress:
+      enabled: true
+      className: "nginx"
+      host: "admin.vpn.example.com"
+      tls: true
+      tlsSecretName: "openvpn-manager-admin-tls"
+      annotations:
+        nginx.ingress.kubernetes.io/ssl-redirect: "true"
+        nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+        nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+        nginx.ingress.kubernetes.io/rate-limit: "100"
+        nginx.ingress.kubernetes.io/rate-limit-window: "1m"
+        cert-manager.io/cluster-issuer: "letsencrypt-prod"
+  config:
+    environment: production
+    logLevel: INFO
+    siteShortName: "OpenVPN Manager"
+    openvpnServerHostname: "vpn.example.com"
+    oidc:
+      discoveryUrl: "https://your-oidc-provider.com/.well-known/openid-configuration"
+      clientId: "your-production-client-id"
+      # clientSecret is in .secrets.oidcClientSecret, not here.
+      adminGroup: "vpn-admins"
+    database:
+      host: ""  # Will be auto-generated to match the PostgreSQL service name
+      port: 5432
+      name: "frontend_db"
+      user: "postgres"
+
+# Signing service configuration
+signing:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: signing
+    tag: latest
+  service:
+    type: ClusterIP
+    port: 8500
+  resources:
+    limits:
+      cpu: 300m
+      memory: 256Mi
+    requests:
+      cpu: 150m
+      memory: 128Mi
+  config:
+    environment: production
+    logLevel: INFO
+
+# Certificate Transparency service configuration
+certtransparency:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: certtransparency
+    tag: latest
+  service:
+    type: ClusterIP
+    port: 8800
+  resources:
+    limits:
+      cpu: 300m
+      memory: 256Mi
+    requests:
+      cpu: 150m
+      memory: 128Mi
+  config:
+    environment: production
+    logLevel: INFO
+    database:
+      host: ""  # Will be auto-generated to match the PostgreSQL service name
+      port: 5432
+      name: "ct_db"
+      user: "postgres"
+
+
+# Legacy ingress configuration (replaced by individual service ingresses)
+# ingress:
+#   enabled: false
+
+# Persistent Volume Claims
+persistence:
+  config:
+    enabled: true
+    storageClass: ""
+    accessMode: ReadWriteMany
+    size: 1Gi
+    annotations: {}
+
+# Network policies
+networkPolicy:
+  enabled: false
+  egress:
+    enabled: true
+
+# Pod Disruption Budget
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+
+# Monitoring
+monitoring:
+  serviceMonitor:
+    enabled: false
+    namespace: monitoring
+    labels: {}
+    interval: 30s
+    scrapeTimeout: 10s
+
+# Node affinity and tolerations
+nodeSelector: {}
+
+tolerations: []
+
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+    - weight: 100
+      podAffinityTerm:
+        labelSelector:
+          matchExpressions:
+          - key: app.kubernetes.io/name
+            operator: In
+            values:
+            - openvpn-manager
+        topologyKey: kubernetes.io/hostname
+
+
+# Override secret names to enable auto-creation
+secrets:
+  signingApiSecret:
+    name: ""       # Empty name means "create one and use the default name"
+    api_secret: "" # Empty value means "create a random string"
+  ctApiSecret:
+    name: ""       # Empty name means "create one and use the default name"
+    api_secret: "" # Empty value means "create a random string"
+  oidcClientSecret:
+    name: ""         # Empty name means "create one and use the default name"
+    api_secret: ""   # Empty value means "Use the one from the test OIDC service"
+  flaskSecretKey:
+    frontend:
+      name: ""   # Empty name means "create one and use the default name"
+      key: ""    # Empty value means "flask-secret-key"
+      value: ""  # Empty value means "create a random string"
+    signing:
+      name: ""   # Empty name means "create one and use the default name"
+      key: ""    # Empty value means "flask-secret-key"
+      value: ""  # Empty value means "create a random string"
+    certtransparency:
+      name: ""   # Empty name means "create one and use the default name"
+      key: ""    # Empty value means "flask-secret-key"
+      value: ""  # Empty value means "create a random string"
+  fernet:
+    name: ""   # Empty name means "create one and use the default name"
+    key: ""    # Empty value means "fernet-key"
+    value: ""  # Empty value means "Use the testing string"
+  pkiCert:
+    name: ""         # Empty name triggers auto-creation
+    intermediate: "" # Provide this as part of your deployment code, not in the chart
+    root: ""         # Provide this as part of your deployment code, not in the chart
+  pkiKey:
+    name: ""         # Empty name triggers auto-creation
+    intermediate: "" # Provide this as part of your deployment code, not in the chart
+  caKeyPassphrase:
+    name: ""          # Empty name triggers auto-creation
+    value: "password" # The password for the testing keys
+
+
+clientTemplateOptions: 
+  use_tcp:
+    name: "TCP Protocol"
+    description: "Use TCP protocol for better reliability through firewalls"
+    settings:
+      protocol: tcp
+
+  pretend_to_be_https:
+    name: "Pretend to be HTTPS to bypass restrictive firewalls"
+    description: "Use the HTTPS port to try to bypass firewalls. This may also require 'TCP Protocol' to be selected for your best chance of bypass."
+    settings:
+      port: 443
+  
+  enable_compression:
+    name: "Enable Compression"
+    description: "Enable LZ4 compression to reduce bandwidth usage"
+    settings:
+      compress: "1"
+
+clientTemplates:
+  "999.default.ovpn": |
+    ######################################
+    # Default OpenVPN Configuration File #
+    ######################################
+    client
+    dev tun
+    {%- if protocol == 'tcp' %}
+    proto tcp-client
+    {% else %}
+    proto udp
+    {% endif %}
+    remote user.vpn.example.org {{ port | default ('1194') }}
+    resolv-retry infinite
+    nobind
+    persist-key
+    persist-tun
+    remote-cert-tls server
+    cipher AES-256-GCM
+    comp-lzo
+    {%- if compress | default('0') == '1' %}
+    compress lz4
+    {% endif %}
+
+    #######################
+    # Certificate Content #
+    #######################
+    <ca>
+    {{ ca_cert_pem }}
+    </ca>
+
+    <cert>
+    {{ device_cert_pem }}
+    </cert>
+
+    <key>
+    {{ device_key_pem }}
+    </key>
+
+    {%- if tls_crypt_key %}
+    <tls-crypt>
+    {{ tls_crypt_key }}
+    </tls-crypt>
+    {% endif %}
+
+    ################
+    # Log Settings #
+    ################
+    verb 3
+    mute 20
+  "000.admins.ovpn": |
+    ######################################
+    # Default OpenVPN Configuration File #
+    ######################################
+    client
+    dev tun
+    {%- if protocol == 'tcp' %}
+    proto tcp-client
+    {% else %}
+    proto udp
+    {% endif %}
+    remote admin.vpn.example.org {{ port | default ('1194') }}
+    resolv-retry infinite
+    nobind
+    persist-key
+    persist-tun
+    remote-cert-tls server
+    cipher AES-256-GCM
+    comp-lzo
+    {%- if compress | default('0') == '1' %}
+    compress lz4
+    {% endif %}
+
+    #######################
+    # Certificate Content #
+    #######################
+    <ca>
+    {{ ca_cert_pem }}
+    </ca>
+
+    <cert>
+    {{ device_cert_pem }}
+    </cert>
+
+    <key>
+    {{ device_key_pem }}
+    </key>
+
+    {%- if tls_crypt_key %}
+    <tls-crypt>
+    {{ tls_crypt_key }}
+    </tls-crypt>
+    {% endif %}
+
+    ################
+    # Log Settings #
+    ################
+    verb 3
+    mute 20
+
+serverTemplates:
+  "JustTCP.0443.ovpn": |
+    # OpenVPN TCP/443 Server
+    port 443
+    proto tcp-server
+    dev tun
+    topology subnet
+
+    # Certificates and keys
+    ca ca-chain.crt
+    cert server.crt
+    key server.key
+
+    # TLS settings
+    tls-crypt tls-crypt.key
+
+    # Network settings
+    server 10.8.0.0 255.255.255.0
+    ifconfig-pool-persist ipp.txt
+
+    # Client configuration
+    push "redirect-gateway def1 bypass-dhcp"
+    push "dhcp-option DNS 8.8.8.8"
+    push "dhcp-option DNS 8.8.4.4"
+
+    # Security settings
+    cipher AES-256-GCM
+    auth SHA256
+    dh none
+    ecdh-curve prime256v1
+
+    # Connection settings
+    keepalive 10 120
+    comp-lzo
+    persist-key
+    persist-tun
+    status openvpn-status.log
+    verb 3
+
+    # User/group settings
+    user nobody
+    group nogroup
+
+  "JustUDP.1194.ovpn": |
+    # OpenVPN UDP/1194 Server
+    port 1194
+    proto udp
+    dev tun
+    topology subnet
+
+    # Certificates and keys
+    ca ca-chain.crt
+    cert server.crt
+    key server.key
+
+    # TLS settings
+    tls-crypt tls-crypt.key
+
+    # Network settings
+    server 10.8.0.0 255.255.255.0
+    ifconfig-pool-persist ipp.txt
+
+    # Client configuration
+    push "redirect-gateway def1 bypass-dhcp"
+    push "dhcp-option DNS 8.8.8.8"
+    push "dhcp-option DNS 8.8.4.4"
+
+    # Security settings
+    cipher AES-256-GCM
+    auth SHA256
+    dh none
+    ecdh-curve prime256v1
+
+    # Connection settings
+    keepalive 10 120
+    comp-lzo
+    persist-key
+    persist-tun
+    status openvpn-status.log
+    verb 3
+
+    # User/group settings
+    user nobody
+    group nogroup

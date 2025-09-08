@@ -1,0 +1,101 @@
+{{- if .Values.certtransparency.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "openvpn-manager.certtransparency.fullname" . }}
+  labels:
+    {{- include "openvpn-manager.labels" . | nindent 4 }}
+    app.kubernetes.io/component: certtransparency
+spec:
+  replicas: {{ .Values.certtransparency.replicaCount }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      {{- include "openvpn-manager.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: certtransparency
+  template:
+    metadata:
+      annotations:
+        checksum/secret: {{ include (print $.Template.BasePath "/secrets.yaml") . | sha256sum }}
+      labels:
+        {{- include "openvpn-manager.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: certtransparency
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "openvpn-manager.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: certtransparency
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: {{ include "openvpn-manager.image" (dict "registry" .Values.image.registry "repository" .Values.image.repository "component" "certtransparency" "tag" .Values.certtransparency.image.tag "Chart" .Chart "Values" .Values) }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.certtransparency.service.port }}
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 30
+            failureThreshold: 5
+          env:
+            - name: ENVIRONMENT
+              value: {{ .Values.certtransparency.config.environment | quote }}
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "openvpn-manager.fullname" . }}-db-users
+                  key: certtransparency-uri
+            - name: LOG_LEVEL
+              value: {{ .Values.certtransparency.config.logLevel | quote }}
+            - name: CT_SERVICE_API_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.ctApiSecret.name | default (printf "%s-ct-api-secret" (include "openvpn-manager.fullname" .)) }}
+                  key: {{ .Values.secrets.ctApiSecret.key | default "api-secret" }}
+            - name: FLASK_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.flaskSecretKey.certtransparency.name | default (printf "%s-flask-secret-key-certtransparency" (include "openvpn-manager.fullname" .)) }}
+                  key: {{ .Values.secrets.flaskSecretKey.certtransparency.key | default "flask-secret-key" }}
+          resources:
+            {{- toYaml .Values.certtransparency.resources | nindent 12 }}
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

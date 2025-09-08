@@ -1,0 +1,171 @@
+# Test values for OpenVPN Manager Helm chart
+# This configuration is suitable for local testing with kind in devcontainers
+
+# Image pull secrets for private registries  
+imagePullSecrets:
+  - name: ghcr-pull-secret
+
+# Use ReadWriteOnce for local testing (kind only supports this)
+persistence:
+  pki:
+    accessMode: ReadWriteOnce
+  config:
+    accessMode: ReadWriteOnce
+
+# PKI certificate source for testing
+pki:
+  secret: pki-certs
+
+# ServiceAccount configuration
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+# Allow root access for pki-setup init container in testing
+podSecurityContext:
+  fsGroup: 1001
+  runAsNonRoot: false  # Allow root for pki-setup init container
+  runAsUser: 1001
+
+# Override secret names to enable auto-creation for testing
+secrets:
+  signingApiSecret:
+    name: ""       # Empty name means "create one and use the default name"
+    api_secret: "" # Empty value means "create a random string"
+  ctApiSecret:
+    name: ""       # Empty name means "create one and use the default name"
+    api_secret: "" # Empty value means "create a random string"
+  oidcClientSecret:
+    name: ""          # Empty name means "create one and use the default name"
+    client_secret: "" # Empty value means "Use the one from the test OIDC service"
+  flaskSecretKey:
+    frontend:
+      name: ""   # Empty name means "create one and use the default name"
+      key: ""    # Empty value means "flask-secret-key"
+      value: ""  # Empty value means "create a random string"
+    signing:
+      name: ""   # Empty name means "create one and use the default name"
+      key: ""    # Empty value means "flask-secret-key"
+      value: ""  # Empty value means "create a random string"
+    certtransparency:
+      name: ""   # Empty name means "create one and use the default name"
+      key: ""    # Empty value means "flask-secret-key"
+      value: ""  # Empty value means "create a random string"
+  fernet:
+    name: ""   # Empty name means "create one and use the default name"
+    key: ""    # Empty value means "fernet-key"
+    value: ""  # Empty value means "Use the testing string"
+  caKeyPassphrase:
+    name: ""  # Empty name triggers auto-creation
+  tinyOidcSecret:
+    name: ""  # Empty name triggers auto-creation
+
+# Frontend configuration - enable user and admin services
+frontend:
+  enabled: true
+  # Disable combined service since we're using separate user/admin
+  combinedService:
+    enabled: false
+  # User service configuration
+  userService:
+    enabled: true
+    replicaCount: 1
+    siteName: "VPN Service"
+    urlBase: "http://user.localhost:8000"
+    ingress:
+      enabled: true
+      className: "nginx"
+      host: "user.localhost"
+      tls: false  # Disable TLS for local testing
+      annotations:
+        nginx.ingress.kubernetes.io/ssl-redirect: "false"
+        nginx.ingress.kubernetes.io/force-ssl-redirect: "false"
+  # Admin service configuration  
+  adminService:
+    enabled: true
+    replicaCount: 1
+    siteName: "VPN Service - Admin"
+    urlBase: "http://admin.localhost:8000"
+    ingress:
+      enabled: true
+      className: "nginx"
+      host: "admin.localhost"
+      tls: false  # Disable TLS for local testing
+      annotations:
+        nginx.ingress.kubernetes.io/ssl-redirect: "false"
+        nginx.ingress.kubernetes.io/force-ssl-redirect: "false"
+  # Increase resource requirements for stable operation
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1Gi
+    requests:
+      cpu: 200m
+      memory: 512Mi
+  # Disable autoscaling for testing
+  autoscaling:
+    enabled: false
+  config:
+    environment: production
+    logLevel: INFO
+    siteShortName: "OpenVPN Manager (Test)"
+    openvpnServerHostname: "vpn.localhost"
+    oidc:
+      discoveryUrl: "https://tinyoidc.authenti-kate.org/.well-known/openid-configuration"
+      clientId: "client_id_12decaf34bad56"
+      adminGroup: "admins"
+    database:
+      host: "postgresql-test.postgresql"
+      port: 5432
+      name: "frontend_service"
+      user: "postgres"
+      password: "test123"
+
+
+# Signing service configuration
+signing:
+  enabled: true
+  replicaCount: 1
+  resources:
+    limits:
+      cpu: 300m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 256Mi
+
+# Certificate Transparency service configuration  
+certtransparency:
+  enabled: true
+  replicaCount: 1
+  resources:
+    limits:
+      cpu: 300m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 256Mi
+  config:
+    database:
+      host: "postgresql-test.postgresql"
+      port: 5432
+      name: "certtransparency_service"
+      user: "postgres"
+      password: "test123"
+
+# Database password configuration for external PostgreSQL
+postgresql:
+  image:
+    registry: "docker.io"
+    repo: "library/postgres"
+    tag: "17-alpine"
+
+# Disable monitoring for testing
+monitoring:
+  serviceMonitor:
+    enabled: false
+
+# Disable pod disruption budget for testing
+podDisruptionBudget:
+  enabled: false

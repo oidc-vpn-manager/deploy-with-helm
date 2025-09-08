@@ -1,0 +1,52 @@
+# Development values for openvpn-manager
+# This is a values file for development/testing environments
+
+# Reduce resource requirements for development
+frontend:
+  replicaCount: 1
+  resources:
+    limits:
+      cpu: 200m
+      memory: 256Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  autoscaling:
+    enabled: false
+
+signing:
+  replicaCount: 1
+  resources:
+    limits:
+      cpu: 200m
+      memory: 128Mi
+    requests:
+      cpu: 100m
+      memory: 64Mi
+
+certtransparency:
+  replicaCount: 1
+  resources:
+    limits:
+      cpu: 200m
+      memory: 128Mi
+    requests:
+      cpu: 100m
+      memory: 64Mi
+
+
+
+
+# Disable network policies for easier debugging
+networkPolicy:
+  enabled: false
+
+# Disable pod disruption budgets
+podDisruptionBudget:
+  enabled: false
+
+# Development storage
+persistence:
+  config:
+    size: 100Mi
+    storageClass: "hostpath"  # Use hostpath for development
