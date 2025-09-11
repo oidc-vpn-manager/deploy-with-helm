@@ -4,9 +4,9 @@ description: A comprehensive OpenVPN certificate management system with OIDC aut
 type: application
 version: 1.0.0
 appVersion: "1.0.0"
-home: https://github.com/your-org/openvpn-manager
+home: https://github.com/openvpn-manager
 sources:
-  - https://github.com/your-org/openvpn-manager
+  - https://github.com/openvpn-manager/helm
 keywords:
   - openvpn
   - vpn
@@ -15,8 +15,8 @@ keywords:
   - oidc
   - certificate-transparency
 maintainers:
-  - name: OpenVPN Manager Team
-    email: maintainers@example.com
+  - name: OpenVPN-Manager Project Team Lead
+    email: jon@sprig.gs
 annotations:
   category: Networking
-  licenses: MIT
+  licenses: AGPL
