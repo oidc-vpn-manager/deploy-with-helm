@@ -44,6 +44,7 @@ helm install openvpn-manager ./openvpn-manager \
 - **Ingress**: Ingress controller (nginx recommended)
 - **OIDC Provider**: For authentication
 - **PKI Materials**: CA certificates and keys
+- **TLS-Crypt Key** (optional): OpenVPN tls-crypt v1 or v2 key for enhanced security
 
 ## 📚 Documentation
 
@@ -72,6 +73,7 @@ Each chart includes comprehensive documentation:
 - **Auto-generation**: API keys generated automatically during deployment
 - **File-based Secrets**: Secrets mounted as files, not environment variables
 - **Rotation Support**: Secrets can be rotated without service restart
+- **TLS-Crypt Support**: Optional tls-crypt v1/v2 keys for OpenVPN channel encryption
 
 ## 🚀 Deployment Options
 
@@ -189,6 +191,53 @@ postgresql:
       storageClass: "gp3-encrypted"
       size: 50Gi
 ```
+
+### TLS-Crypt Configuration
+
+OpenVPN Manager supports both tls-crypt v1 (static keys) and v2 (per-client keys) for enhanced security.
+
+**Generate TLS-Crypt Key:**
+```bash
+# For tls-crypt v1 (static key)
+openvpn --genkey secret tls-crypt.key
+
+# For tls-crypt v2 (server master key - recommended)
+openvpn --genkey tls-crypt-v2-server tls-crypt-v2-server.key
+```
+
+**Configure in Helm values:**
+```yaml
+secrets:
+  tlsCrypt:
+    name: ""  # Empty to auto-create
+    key: ""   # Defaults to "tls-crypt.key"
+    value: ""  # Base64-encoded key content
+```
+
+**Create secret manually:**
+```bash
+# Base64 encode your key file
+cat tls-crypt-v2-server.key | base64 -w 0
+
+# Add to your values file
+secrets:
+  tlsCrypt:
+    value: "LS0tLS1CRUdJTiB... (base64 content)"
+```
+
+**Or use existing secret:**
+```yaml
+secrets:
+  tlsCrypt:
+    name: "my-existing-tls-crypt-secret"
+    key: "tls-crypt.key"
+```
+
+**Security Benefits:**
+- **v1**: Shared static key providing TLS channel encryption
+- **v2**: Unique per-client keys derived from server master key (recommended)
+- **DoS Protection**: Additional HMAC authentication before TLS handshake
+- **Attack Surface Reduction**: Prevents unauthorized TLS connections
 
 ## 🐛 Troubleshooting
 

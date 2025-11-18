@@ -113,12 +113,22 @@ spec:
               value: "/app/pki/root-ca.crt"
             - name: INTERMEDIATE_CA_CERTIFICATE_FILE
               value: "/app/pki/intermediate-ca.crt"
+            {{- if or .Values.secrets.tlsCrypt.value .Values.secrets.tlsCrypt.name }}
+            - name: OPENVPN_TLS_CRYPT_KEY_FILE
+              value: "/app/pki/tls-crypt.key"
+            {{- end }}
           resources:
             {{- toYaml .Values.frontend.resources | nindent 12 }}
           volumeMounts:
             - name: pki-certs
               mountPath: /app/pki
               readOnly: true
+            {{- if or .Values.secrets.tlsCrypt.value .Values.secrets.tlsCrypt.name }}
+            - name: tls-crypt
+              mountPath: /app/pki/tls-crypt.key
+              subPath: {{ .Values.secrets.tlsCrypt.key | default "tls-crypt.key" }}
+              readOnly: true
+            {{- end }}
             - name: openvpn-templates
               mountPath: /app/openvpn_templates
               readOnly: true
@@ -132,6 +142,11 @@ spec:
         - name: pki-certs
           secret:
             secretName: {{ .Values.secrets.pkiCert.name | default (printf "%s-pki-cert" (include "openvpn-manager.fullname" .)) }}
+        {{- if or .Values.secrets.tlsCrypt.value .Values.secrets.tlsCrypt.name }}
+        - name: tls-crypt
+          secret:
+            secretName: {{ .Values.secrets.tlsCrypt.name | default (printf "%s-tls-crypt" (include "openvpn-manager.fullname" .)) }}
+        {{- end }}
         - name: openvpn-templates
           configMap:
             name: {{ include "openvpn-manager.fullname" . }}-openvpn-templates

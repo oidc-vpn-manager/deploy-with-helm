@@ -271,6 +271,10 @@ secrets:
   caKeyPassphrase:
     name: ""          # Empty name triggers auto-creation
     value: "password" # The password for the testing keys
+  tlsCrypt:
+    name: ""          # Empty name triggers auto-creation
+    key: ""           # Empty value means "tls-crypt.key"
+    value: ""         # Provide base64-encoded tls-crypt key content (v1 or v2 server key)
 
 
 clientTemplateOptions: 
@@ -332,9 +336,15 @@ clientTemplates:
     </key>
 
     {%- if tls_crypt_key %}
+    {%- if tlscrypt_version == 2 %}
+    <tls-crypt-v2>
+    {{ tls_crypt_key }}
+    </tls-crypt-v2>
+    {%- else %}
     <tls-crypt>
     {{ tls_crypt_key }}
     </tls-crypt>
+    {%- endif %}
     {% endif %}
 
     ################
@@ -381,9 +391,15 @@ clientTemplates:
     </key>
 
     {%- if tls_crypt_key %}
+    {%- if tlscrypt_version == 2 %}
+    <tls-crypt-v2>
+    {{ tls_crypt_key }}
+    </tls-crypt-v2>
+    {%- else %}
     <tls-crypt>
     {{ tls_crypt_key }}
     </tls-crypt>
+    {%- endif %}
     {% endif %}
 
     ################
