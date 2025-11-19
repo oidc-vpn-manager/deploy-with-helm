@@ -104,7 +104,9 @@ fi
 
 # Create PKI Secret with base64 encoded certificates (will be created in openvpn-manager namespace later)
 echo "🔑 Preparing PKI Secret with test certificates..."
-PKI_DIR="/workspaces/2025-06_openvpn-manager_gh-org/tests/deploy/pki"
+# Use dynamic path resolution relative to this script
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../../" && pwd)"
+PKI_DIR="${REPO_ROOT}/tests/deploy/pki"
 if [ -d "$PKI_DIR" ]; then
     echo "✅ PKI certificates found at $PKI_DIR"
 else
