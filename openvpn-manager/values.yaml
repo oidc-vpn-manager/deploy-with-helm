@@ -274,7 +274,9 @@ secrets:
   tlsCrypt:
     name: ""          # Empty name triggers auto-creation
     key: ""           # Empty value means "tls-crypt.key"
-    value: ""         # Provide base64-encoded tls-crypt key content (v1 or v2 server key)
+    value: ""         # Provide base64-encoded tls-crypt key content
+                      # For tls-crypt v1: provide the static key (shared by all clients)
+                      # For tls-crypt-v2: provide the server master key (per-client keys are derived automatically)
 
 
 clientTemplateOptions: 
@@ -492,3 +494,92 @@ serverTemplates:
     # User/group settings
     user nobody
     group nogroup
+
+  # --- tls-crypt-v2 variants ---
+  # Use these instead of the above when your OPENVPN_TLS_CRYPT_KEY is a
+  # tls-crypt-v2 server master key. The manager will automatically derive
+  # unique per-client keys for each generated profile.
+
+  # "JustTCP_V2.0443.ovpn": |
+  #   # OpenVPN TCP/443 Server (tls-crypt-v2)
+  #   port 443
+  #   proto tcp-server
+  #   dev tun
+  #   topology subnet
+  #
+  #   # Certificates and keys
+  #   ca ca-chain.crt
+  #   cert server.crt
+  #   key server.key
+  #
+  #   # TLS settings (tls-crypt-v2 uses per-client keys derived from the server key)
+  #   tls-crypt-v2 tls-crypt-v2-server.key
+  #
+  #   # Network settings
+  #   server 10.8.0.0 255.255.255.0
+  #   ifconfig-pool-persist ipp.txt
+  #
+  #   # Client configuration
+  #   push "redirect-gateway def1 bypass-dhcp"
+  #   push "dhcp-option DNS 8.8.8.8"
+  #   push "dhcp-option DNS 8.8.4.4"
+  #
+  #   # Security settings
+  #   cipher AES-256-GCM
+  #   auth SHA256
+  #   dh none
+  #   ecdh-curve prime256v1
+  #
+  #   # Connection settings
+  #   keepalive 10 120
+  #   comp-lzo
+  #   persist-key
+  #   persist-tun
+  #   status openvpn-status.log
+  #   verb 3
+  #
+  #   # User/group settings
+  #   user nobody
+  #   group nogroup
+
+  # "JustUDP_V2.1194.ovpn": |
+  #   # OpenVPN UDP/1194 Server (tls-crypt-v2)
+  #   port 1194
+  #   proto udp
+  #   dev tun
+  #   topology subnet
+  #
+  #   # Certificates and keys
+  #   ca ca-chain.crt
+  #   cert server.crt
+  #   key server.key
+  #
+  #   # TLS settings (tls-crypt-v2 uses per-client keys derived from the server key)
+  #   tls-crypt-v2 tls-crypt-v2-server.key
+  #
+  #   # Network settings
+  #   server 10.8.0.0 255.255.255.0
+  #   ifconfig-pool-persist ipp.txt
+  #
+  #   # Client configuration
+  #   push "redirect-gateway def1 bypass-dhcp"
+  #   push "dhcp-option DNS 8.8.8.8"
+  #   push "dhcp-option DNS 8.8.4.4"
+  #
+  #   # Security settings
+  #   cipher AES-256-GCM
+  #   auth SHA256
+  #   dh none
+  #   ecdh-curve prime256v1
+  #
+  #   # Connection settings
+  #   keepalive 10 120
+  #   comp-lzo
+  #   persist-key
+  #   persist-tun
+  #   status openvpn-status.log
+  #   verb 3
+  #
+  #   # User/group settings
+  #   user nobody
+  #   group nogroup
