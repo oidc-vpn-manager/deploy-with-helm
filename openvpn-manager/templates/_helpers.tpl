@@ -1,7 +1,7 @@
 {{/*
 Expand the name of the chart.
 */}}
-{{- define "openvpn-manager.name" -}}
+{{- define "oidc-vpn-manager.name" -}}
 {{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
@@ -10,7 +10,7 @@ Create a default fully qualified app name.
 We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
 If release name contains chart name it will be used as a full name.
 */}}
-{{- define "openvpn-manager.fullname" -}}
+{{- define "oidc-vpn-manager.fullname" -}}
 {{- if .Values.fullnameOverride }}
 {{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
 {{- else }}
@@ -26,16 +26,16 @@ If release name contains chart name it will be used as a full name.
 {{/*
 Create chart name and version as used by the chart label.
 */}}
-{{- define "openvpn-manager.chart" -}}
+{{- define "oidc-vpn-manager.chart" -}}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{/*
 Common labels
 */}}
-{{- define "openvpn-manager.labels" -}}
-helm.sh/chart: {{ include "openvpn-manager.chart" . }}
-{{ include "openvpn-manager.selectorLabels" . }}
+{{- define "oidc-vpn-manager.labels" -}}
+helm.sh/chart: {{ include "oidc-vpn-manager.chart" . }}
+{{ include "oidc-vpn-manager.selectorLabels" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
@@ -45,25 +45,25 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{/*
 Selector labels
 */}}
-{{- define "openvpn-manager.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "openvpn-manager.name" . }}
+{{- define "oidc-vpn-manager.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "oidc-vpn-manager.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 {{/*
 Component selector labels
 */}}
-{{- define "openvpn-manager.componentSelectorLabels" -}}
-{{ include "openvpn-manager.selectorLabels" . }}
+{{- define "oidc-vpn-manager.componentSelectorLabels" -}}
+{{ include "oidc-vpn-manager.selectorLabels" . }}
 app.kubernetes.io/component: {{ .component }}
 {{- end }}
 
 {{/*
 Create the name of the service account to use
 */}}
-{{- define "openvpn-manager.serviceAccountName" -}}
+{{- define "oidc-vpn-manager.serviceAccountName" -}}
 {{- if .Values.serviceAccount.create }}
-{{- default (include "openvpn-manager.fullname" .) .Values.serviceAccount.name }}
+{{- default (include "oidc-vpn-manager.fullname" .) .Values.serviceAccount.name }}
 {{- else }}
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
@@ -72,29 +72,29 @@ Create the name of the service account to use
 {{/*
 Frontend component name
 */}}
-{{- define "openvpn-manager.frontend.fullname" -}}
-{{- printf "%s-%s" (include "openvpn-manager.fullname" .) "frontend" }}
+{{- define "oidc-vpn-manager.frontend.fullname" -}}
+{{- printf "%s-%s" (include "oidc-vpn-manager.fullname" .) "frontend" }}
 {{- end }}
 
 {{/*
 Signing component name
 */}}
-{{- define "openvpn-manager.signing.fullname" -}}
-{{- printf "%s-%s" (include "openvpn-manager.fullname" .) "signing" }}
+{{- define "oidc-vpn-manager.signing.fullname" -}}
+{{- printf "%s-%s" (include "oidc-vpn-manager.fullname" .) "signing" }}
 {{- end }}
 
 {{/*
 Certificate Transparency component name
 */}}
-{{- define "openvpn-manager.certtransparency.fullname" -}}
-{{- printf "%s-%s" (include "openvpn-manager.fullname" .) "certtransparency" }}
+{{- define "oidc-vpn-manager.certtransparency.fullname" -}}
+{{- printf "%s-%s" (include "oidc-vpn-manager.fullname" .) "certtransparency" }}
 {{- end }}
 
 
 {{/*
 Image name helper
 */}}
-{{- define "openvpn-manager.image" -}}
+{{- define "oidc-vpn-manager.image" -}}
 {{- $registry := .registry | default .Values.image.registry -}}
 {{- $repository := .repository | default .Values.image.repository -}}
 {{- $tag := .tag | default .Values.image.tag | default .Chart.AppVersion -}}
@@ -104,7 +104,7 @@ Image name helper
 {{/*
 Database URI helper for components
 */}}
-{{- define "openvpn-manager.databaseUri" -}}
+{{- define "oidc-vpn-manager.databaseUri" -}}
 {{- $host := .database.host -}}
 {{- $port := .database.port | toString -}}
 {{- $user := .database.user -}}
@@ -115,7 +115,7 @@ Database URI helper for components
 {{/*
 Database URI helper with actual password for testing
 */}}
-{{- define "openvpn-manager.databaseUriWithPassword" -}}
+{{- define "oidc-vpn-manager.databaseUriWithPassword" -}}
 {{- $host := .config.database.host -}}
 {{- $port := .config.database.port | toString -}}
 {{- $user := .config.database.user -}}

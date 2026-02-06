@@ -49,7 +49,7 @@ helm repo update
 ### 2. Create Namespace
 
 ```bash
-kubectl create namespace openvpn-manager
+kubectl create namespace oidc-vpn-manager
 ```
 
 ### 3. Prepare PKI Materials
@@ -57,11 +57,11 @@ kubectl create namespace openvpn-manager
 Create a Kubernetes secret with your PKI materials:
 
 ```bash
-kubectl create secret generic openvpn-manager-pki \
+kubectl create secret generic oidc-vpn-manager-pki \
   --from-file=root-ca.crt=path/to/root-ca.crt \
   --from-file=intermediate-ca.crt=path/to/intermediate-ca.crt \
   --from-file=intermediate-ca.key=path/to/intermediate-ca.key \
-  -n openvpn-manager
+  -n oidc-vpn-manager
 ```
 
 ### 4. Create Secrets
@@ -70,21 +70,21 @@ Create required secrets:
 
 ```bash
 # OIDC client secret
-kubectl create secret generic openvpn-manager-oidc-client-secret \
+kubectl create secret generic oidc-vpn-manager-oidc-client-secret \
   --from-literal=client-secret='your-oidc-client-secret' \
-  -n openvpn-manager
+  -n oidc-vpn-manager
 
 # CA key passphrase
-kubectl create secret generic openvpn-manager-ca-key-passphrase \
+kubectl create secret generic oidc-vpn-manager-ca-key-passphrase \
   --from-literal=passphrase='your-ca-key-passphrase' \
-  -n openvpn-manager
+  -n oidc-vpn-manager
 ```
 
 ### 5. Install the Chart
 
 ```bash
-helm install openvpn-manager ./openvpn-manager \
-  --namespace openvpn-manager \
+helm install oidc-vpn-manager ./oidc-vpn-manager \
+  --namespace oidc-vpn-manager \
   --set ingress.hosts[0].host=vpn.yourdomain.com \
   --set frontend.config.openvpnServerHostname=vpn.yourdomain.com \
   --set frontend.config.oidc.discoveryUrl=https://your-oidc-provider.com/.well-known/openid-configuration \
@@ -102,7 +102,7 @@ helm install openvpn-manager ./openvpn-manager \
 |-----------|-------------|---------|
 | `global.storageClass` | Global storage class | `""` |
 | `image.registry` | Container registry | `ghcr.io` |
-| `image.repository` | Repository base path | `openvpn-manager` |
+| `image.repository` | Repository base path | `oidc-vpn-manager` |
 | `image.tag` | Image tag | `""` (uses appVersion) |
 
 ### Frontend Configuration
@@ -131,7 +131,7 @@ helm install openvpn-manager ./openvpn-manager \
 | `ingress.enabled` | Enable ingress | `true` |
 | `ingress.className` | Ingress class | `nginx` |
 | `ingress.hosts[0].host` | Hostname | `vpn.example.com` |
-| `ingress.tls[0].secretName` | TLS secret name | `openvpn-manager-tls` |
+| `ingress.tls[0].secretName` | TLS secret name | `oidc-vpn-manager-tls` |
 
 ### Security Configuration
 
@@ -157,7 +157,7 @@ frontend:
     openvpnServerHostname: "vpn.yourcompany.com"
     oidc:
       discoveryUrl: "https://auth.yourcompany.com/.well-known/openid-configuration"
-      clientId: "openvpn-manager-prod"
+      clientId: "oidc-vpn-manager-prod"
       adminGroup: "vpn-administrators"
 
 ingress:
@@ -196,23 +196,23 @@ monitoring:
 Install with custom values:
 
 ```bash
-helm install openvpn-manager ./openvpn-manager \
-  --namespace openvpn-manager \
+helm install oidc-vpn-manager ./oidc-vpn-manager \
+  --namespace oidc-vpn-manager \
   --values values-production.yaml
 ```
 
 ## Upgrading
 
 ```bash
-helm upgrade openvpn-manager ./openvpn-manager \
-  --namespace openvpn-manager \
+helm upgrade oidc-vpn-manager ./oidc-vpn-manager \
+  --namespace oidc-vpn-manager \
   --values values-production.yaml
 ```
 
 ## Uninstalling
 
 ```bash
-helm uninstall openvpn-manager --namespace openvpn-manager
+helm uninstall oidc-vpn-manager --namespace oidc-vpn-manager
 ```
 
 ## Monitoring
@@ -251,30 +251,30 @@ Metrics are available at `/metrics` endpoint on each service.
 
 ### Check Pod Status
 ```bash
-kubectl get pods -n openvpn-manager
+kubectl get pods -n oidc-vpn-manager
 ```
 
 ### View Logs
 ```bash
-kubectl logs -n openvpn-manager deployment/openvpn-manager-frontend
-kubectl logs -n openvpn-manager deployment/openvpn-manager-signing
-kubectl logs -n openvpn-manager deployment/openvpn-manager-certtransparency
-kubectl logs -n openvpn-manager deployment/openvpn-manager-webauth
+kubectl logs -n oidc-vpn-manager deployment/oidc-vpn-manager-frontend
+kubectl logs -n oidc-vpn-manager deployment/oidc-vpn-manager-signing
+kubectl logs -n oidc-vpn-manager deployment/oidc-vpn-manager-certtransparency
+kubectl logs -n oidc-vpn-manager deployment/oidc-vpn-manager-webauth
 ```
 
 ### Check Services
 ```bash
-kubectl get services -n openvpn-manager
+kubectl get services -n oidc-vpn-manager
 ```
 
 ### Verify Ingress
 ```bash
-kubectl describe ingress -n openvpn-manager
+kubectl describe ingress -n oidc-vpn-manager
 ```
 
 ### Database Connection
 ```bash
-kubectl exec -it -n openvpn-manager deployment/openvpn-manager-postgresql -- psql -U postgres
+kubectl exec -it -n oidc-vpn-manager deployment/oidc-vpn-manager-postgresql -- psql -U postgres
 ```
 
 ### Common Issues
@@ -290,16 +290,16 @@ kubectl exec -it -n openvpn-manager deployment/openvpn-manager-postgresql -- psq
 
 ```bash
 # Validate chart
-helm lint ./openvpn-manager
+helm lint ./oidc-vpn-manager
 
 # Test template rendering
-helm template test-release ./openvpn-manager \
+helm template test-release ./oidc-vpn-manager \
   --values values-production.yaml \
   --debug
 
 # Dry run installation
-helm install openvpn-manager ./openvpn-manager \
-  --namespace openvpn-manager \
+helm install oidc-vpn-manager ./oidc-vpn-manager \
+  --namespace oidc-vpn-manager \
   --dry-run --debug
 ```
 
@@ -308,7 +308,7 @@ helm install openvpn-manager ./openvpn-manager \
 Update dependencies:
 
 ```bash
-helm dependency update ./openvpn-manager
+helm dependency update ./oidc-vpn-manager
 ```
 
 ## Support

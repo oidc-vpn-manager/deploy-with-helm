@@ -77,8 +77,8 @@ secrets:
 	@kubectl create namespace postgresql --dry-run=client -o yaml | kubectl apply -f -
 	@echo "💻  kubectl create namespace oidc --dry-run=client -o yaml | kubectl apply -f -"
 	@kubectl create namespace oidc --dry-run=client -o yaml | kubectl apply -f -
-	@echo "💻  kubectl create namespace openvpn-manager --dry-run=client -o yaml | kubectl apply -f -"
-	@kubectl create namespace openvpn-manager --dry-run=client -o yaml | kubectl apply -f -
+	@echo "💻  kubectl create namespace oidc-vpn-manager --dry-run=client -o yaml | kubectl apply -f -"
+	@kubectl create namespace oidc-vpn-manager --dry-run=client -o yaml | kubectl apply -f -
 	@echo "🔐 Loading environment variables from .env file..."
 	@if [ ! -f "$(SCRIPT_DIR)/.env" ]; then \
 		echo "⚠️  Warning: .env file not found at $(SCRIPT_DIR)/.env"; \
@@ -92,7 +92,7 @@ secrets:
 	if [ -n "$$GITHUB_USERNAME" ] && [ -n "$$GITHUB_TOKEN" ]; then \
 		AUTH_STRING=$$(echo -n "$$GITHUB_USERNAME:$$GITHUB_TOKEN" | base64 -w 0); \
 		DOCKERCONFIG_JSON="{\"auths\":{\"ghcr.io\":{\"auth\":\"$$AUTH_STRING\"}}}"; \
-		for namespace in default postgresql oidc openvpn-manager; do \
+		for namespace in default postgresql oidc oidc-vpn-manager; do \
 			echo "💻  kubectl create secret --namespace $$namespace generic ghcr-pull-secret --from-literal=.dockerconfigjson="-------SECRET-------" --type=kubernetes.io/dockerconfigjson"; \
 			kubectl create secret --namespace $$namespace generic ghcr-pull-secret --from-literal=.dockerconfigjson="$$DOCKERCONFIG_JSON" --type=kubernetes.io/dockerconfigjson || echo "Pull secret already exists"; \
 			echo "✅ Pull secret created in $$namespace namespace"; \
@@ -113,12 +113,12 @@ postgresql:
 openvpn: secrets
 	@echo "🚀 Deploying OpenVPN Manager chart..."
 	@cd $(HELM_CHART_DIR) && \
-		if helm ls --namespace openvpn-manager | grep -q 'openvpn-test' ; then \
-			echo "💻  helm upgrade openvpn-test ./openvpn-manager --namespace openvpn-manager --values ./test/test-values.yaml" && \
-			helm upgrade openvpn-test ./openvpn-manager --namespace openvpn-manager --values ./test/test-values.yaml --set-string secrets.pkiCert.intermediate=$$(base64 -w 0 "test/pki/intermediate-ca.crt"),secrets.pkiCert.root=$$(base64 -w 0 "test/pki/root-ca.crt"),secrets.pkiKey.intermediate=$$(base64 -w 0 "test/pki/intermediate-ca.key") ; \
+		if helm ls --namespace oidc-vpn-manager | grep -q 'openvpn-test' ; then \
+			echo "💻  helm upgrade openvpn-test ./oidc-vpn-manager --namespace oidc-vpn-manager --values ./test/test-values.yaml" && \
+			helm upgrade openvpn-test ./oidc-vpn-manager --namespace oidc-vpn-manager --values ./test/test-values.yaml --set-string secrets.pkiCert.intermediate=$$(base64 -w 0 "test/pki/intermediate-ca.crt"),secrets.pkiCert.root=$$(base64 -w 0 "test/pki/root-ca.crt"),secrets.pkiKey.intermediate=$$(base64 -w 0 "test/pki/intermediate-ca.key") ; \
 		else \
-			echo "💻  helm install openvpn-test ./openvpn-manager --namespace openvpn-manager --values ./test/test-values.yaml" && \
-			helm install openvpn-test ./openvpn-manager --namespace openvpn-manager --values ./test/test-values.yaml --set-string secrets.pkiCert.intermediate=$$(base64 -w 0 "test/pki/intermediate-ca.crt"),secrets.pkiCert.root=$$(base64 -w 0 "test/pki/root-ca.crt"),secrets.pkiKey.intermediate=$$(base64 -w 0 "test/pki/intermediate-ca.key") ; \
+			echo "💻  helm install openvpn-test ./oidc-vpn-manager --namespace oidc-vpn-manager --values ./test/test-values.yaml" && \
+			helm install openvpn-test ./oidc-vpn-manager --namespace oidc-vpn-manager --values ./test/test-values.yaml --set-string secrets.pkiCert.intermediate=$$(base64 -w 0 "test/pki/intermediate-ca.crt"),secrets.pkiCert.root=$$(base64 -w 0 "test/pki/root-ca.crt"),secrets.pkiKey.intermediate=$$(base64 -w 0 "test/pki/intermediate-ca.key") ; \
 		fi
 	@echo "✅ OpenVPN Manager chart deployed successfully"
 
@@ -138,8 +138,8 @@ status:
 	@echo "⏳ Waiting for pods to be ready..."
 	@echo "💻  kubectl wait --for=condition=ready pod --all --namespace postgresql --timeout=300s"
 	@kubectl wait --for=condition=ready pod --all --namespace postgresql --timeout=300s || echo "PostgreSQL pods may still be starting..."
-	@echo "💻  kubectl wait --for=condition=ready pod --all --namespace openvpn-manager --timeout=600s"
-	@kubectl wait --for=condition=ready pod --all --namespace openvpn-manager --timeout=600s || echo "OpenVPN Manager pods may still be starting..."
+	@echo "💻  kubectl wait --for=condition=ready pod --all --namespace oidc-vpn-manager --timeout=600s"
+	@kubectl wait --for=condition=ready pod --all --namespace oidc-vpn-manager --timeout=600s || echo "OpenVPN Manager pods may still be starting..."
 	@echo ""
 	@echo "🎉 OpenVPN Manager test environment is ready!"
 	@echo ""
@@ -150,7 +150,7 @@ status:
 	@echo "PostgreSQL namespace:"
 	@kubectl get pods --namespace postgresql
 	@echo "OpenVPN Manager namespace:"
-	@kubectl get pods --namespace openvpn-manager
+	@kubectl get pods --namespace oidc-vpn-manager
 	@echo ""
 	@echo "🌐 Ingress Routes:"
 	@kubectl get ingress --all-namespaces
@@ -161,7 +161,7 @@ status:
 	@echo ""
 	@echo "🐛 Troubleshooting commands:"
 	@echo "  kubectl get pods                    # Check pod status"
-	@echo "  kubectl logs -l app.kubernetes.io/name=openvpn-manager  # View logs"
+	@echo "  kubectl logs -l app.kubernetes.io/name=oidc-vpn-manager  # View logs"
 	@echo "  kubectl get ingress                 # Check ingress status"
 	@echo ""
 	@echo "🧹 To clean up when done:"

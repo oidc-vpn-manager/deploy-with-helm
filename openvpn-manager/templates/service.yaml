@@ -2,9 +2,9 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "openvpn-manager.frontend.fullname" . }}
+  name: {{ include "oidc-vpn-manager.frontend.fullname" . }}
   labels:
-    {{- include "openvpn-manager.labels" . | nindent 4 }}
+    {{- include "oidc-vpn-manager.labels" . | nindent 4 }}
     app.kubernetes.io/component: frontend
 spec:
   type: {{ .Values.frontend.service.type }}
@@ -14,7 +14,7 @@ spec:
       protocol: TCP
       name: http
   selector:
-    {{- include "openvpn-manager.selectorLabels" . | nindent 4 }}
+    {{- include "oidc-vpn-manager.selectorLabels" . | nindent 4 }}
     app.kubernetes.io/component: frontend
 ---
 {{- end }}
@@ -23,9 +23,9 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "openvpn-manager.frontend.fullname" . }}-user
+  name: {{ include "oidc-vpn-manager.frontend.fullname" . }}-user
   labels:
-    {{- include "openvpn-manager.labels" . | nindent 4 }}
+    {{- include "oidc-vpn-manager.labels" . | nindent 4 }}
     app.kubernetes.io/component: frontend-user
 spec:
   type: {{ .Values.frontend.service.type }}
@@ -35,7 +35,7 @@ spec:
       protocol: TCP
       name: http
   selector:
-    {{- include "openvpn-manager.selectorLabels" . | nindent 4 }}
+    {{- include "oidc-vpn-manager.selectorLabels" . | nindent 4 }}
     app.kubernetes.io/component: frontend-user
 ---
 {{- end }}
@@ -44,9 +44,9 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "openvpn-manager.frontend.fullname" . }}-admin
+  name: {{ include "oidc-vpn-manager.frontend.fullname" . }}-admin
   labels:
-    {{- include "openvpn-manager.labels" . | nindent 4 }}
+    {{- include "oidc-vpn-manager.labels" . | nindent 4 }}
     app.kubernetes.io/component: frontend-admin
 spec:
   type: {{ .Values.frontend.service.type }}
@@ -56,7 +56,7 @@ spec:
       protocol: TCP
       name: http
   selector:
-    {{- include "openvpn-manager.selectorLabels" . | nindent 4 }}
+    {{- include "oidc-vpn-manager.selectorLabels" . | nindent 4 }}
     app.kubernetes.io/component: frontend-admin
 ---
 {{- end }}
@@ -65,9 +65,9 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "openvpn-manager.signing.fullname" . }}
+  name: {{ include "oidc-vpn-manager.signing.fullname" . }}
   labels:
-    {{- include "openvpn-manager.labels" . | nindent 4 }}
+    {{- include "oidc-vpn-manager.labels" . | nindent 4 }}
     app.kubernetes.io/component: signing
 spec:
   type: {{ .Values.signing.service.type }}
@@ -77,7 +77,7 @@ spec:
       protocol: TCP
       name: http
   selector:
-    {{- include "openvpn-manager.selectorLabels" . | nindent 4 }}
+    {{- include "oidc-vpn-manager.selectorLabels" . | nindent 4 }}
     app.kubernetes.io/component: signing
 ---
 {{- end }}
@@ -86,9 +86,9 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "openvpn-manager.certtransparency.fullname" . }}
+  name: {{ include "oidc-vpn-manager.certtransparency.fullname" . }}
   labels:
-    {{- include "openvpn-manager.labels" . | nindent 4 }}
+    {{- include "oidc-vpn-manager.labels" . | nindent 4 }}
     app.kubernetes.io/component: certtransparency
 spec:
   type: {{ .Values.certtransparency.service.type }}
@@ -98,7 +98,7 @@ spec:
       protocol: TCP
       name: http
   selector:
-    {{- include "openvpn-manager.selectorLabels" . | nindent 4 }}
+    {{- include "oidc-vpn-manager.selectorLabels" . | nindent 4 }}
     app.kubernetes.io/component: certtransparency
 ---
 {{- end }}

@@ -13,7 +13,7 @@ OpenVPN Manager provides a comprehensive certificate management system with:
 
 ## 📁 Charts
 
-### `openvpn-manager/`
+### `oidc-vpn-manager/`
 The main Helm chart for deploying the complete OpenVPN Manager system.
 
 **Features:**
@@ -28,8 +28,8 @@ The main Helm chart for deploying the complete OpenVPN Manager system.
 **Quick Start:**
 ```bash
 # Install with basic configuration
-helm install openvpn-manager ./openvpn-manager \
-  --namespace openvpn-manager \
+helm install oidc-vpn-manager ./oidc-vpn-manager \
+  --namespace oidc-vpn-manager \
   --create-namespace \
   --set ingress.hosts[0].host=vpn.yourdomain.com \
   --set frontend.config.oidc.discoveryUrl=https://your-oidc-provider.com/.well-known/openid-configuration \
@@ -79,25 +79,25 @@ Each chart includes comprehensive documentation:
 
 ### Production
 ```bash
-helm install openvpn-manager ./openvpn-manager \
-  --namespace openvpn-manager \
+helm install oidc-vpn-manager ./oidc-vpn-manager \
+  --namespace oidc-vpn-manager \
   --values values-production.yaml
 ```
 
 ### Development
 ```bash
-helm install openvpn-manager ./openvpn-manager \
-  --namespace openvpn-manager \
-  --values openvpn-manager/values-dev.yaml
+helm install oidc-vpn-manager ./oidc-vpn-manager \
+  --namespace oidc-vpn-manager \
+  --values oidc-vpn-manager/values-dev.yaml
 ```
 
 ### Custom Configuration
 ```bash
 # Create custom values file
-cp openvpn-manager/values.yaml my-values.yaml
+cp oidc-vpn-manager/values.yaml my-values.yaml
 # Edit my-values.yaml with your settings
-helm install openvpn-manager ./openvpn-manager \
-  --namespace openvpn-manager \
+helm install oidc-vpn-manager ./oidc-vpn-manager \
+  --namespace oidc-vpn-manager \
   --values my-values.yaml
 ```
 
@@ -246,28 +246,28 @@ secrets:
 **1. Pod Startup Issues**
 ```bash
 # Check pod status
-kubectl get pods -n openvpn-manager
+kubectl get pods -n oidc-vpn-manager
 
 # View pod logs
-kubectl logs -n openvpn-manager deployment/openvpn-manager-frontend
+kubectl logs -n oidc-vpn-manager deployment/oidc-vpn-manager-frontend
 
 # Check events
-kubectl get events -n openvpn-manager --sort-by='.lastTimestamp'
+kubectl get events -n oidc-vpn-manager --sort-by='.lastTimestamp'
 ```
 
 **2. Database Connection Problems**
 ```bash
 # Check PostgreSQL status
-kubectl get pods -n openvpn-manager -l app.kubernetes.io/name=postgresql
+kubectl get pods -n oidc-vpn-manager -l app.kubernetes.io/name=postgresql
 
 # Test database connection
-kubectl exec -it -n openvpn-manager deployment/openvpn-manager-postgresql -- psql -U postgres
+kubectl exec -it -n oidc-vpn-manager deployment/oidc-vpn-manager-postgresql -- psql -U postgres
 ```
 
 **3. Ingress Issues**
 ```bash
 # Check ingress configuration
-kubectl describe ingress -n openvpn-manager
+kubectl describe ingress -n oidc-vpn-manager
 
 # Verify ingress controller
 kubectl get pods -n ingress-nginx
@@ -276,10 +276,10 @@ kubectl get pods -n ingress-nginx
 **4. Secret Issues**
 ```bash
 # List secrets
-kubectl get secrets -n openvpn-manager
+kubectl get secrets -n oidc-vpn-manager
 
 # Check secret content (be careful with sensitive data)
-kubectl get secret openvpn-manager-oidc-client-secret -n openvpn-manager -o yaml
+kubectl get secret oidc-vpn-manager-oidc-client-secret -n oidc-vpn-manager -o yaml
 ```
 
 ### Debug Mode
@@ -295,8 +295,8 @@ frontend:
 
 ### Upgrading the Chart
 ```bash
-helm upgrade openvpn-manager ./openvpn-manager \
-  --namespace openvpn-manager \
+helm upgrade oidc-vpn-manager ./oidc-vpn-manager \
+  --namespace oidc-vpn-manager \
   --values my-values.yaml
 ```
 
@@ -305,34 +305,34 @@ Database migrations run automatically during upgrades via init containers.
 
 ### Rolling Back
 ```bash
-helm rollback openvpn-manager 1 --namespace openvpn-manager
+helm rollback oidc-vpn-manager 1 --namespace oidc-vpn-manager
 ```
 
 ## 🧪 Testing
 
 ### Validate Chart
 ```bash
-helm lint ./openvpn-manager
+helm lint ./oidc-vpn-manager
 ```
 
 ### Test Template Rendering
 ```bash
-helm template test-release ./openvpn-manager \
-  --values openvpn-manager/values-dev.yaml \
+helm template test-release ./oidc-vpn-manager \
+  --values oidc-vpn-manager/values-dev.yaml \
   --debug
 ```
 
 ### Dry Run Installation
 ```bash
-helm install openvpn-manager ./openvpn-manager \
-  --namespace openvpn-manager \
+helm install oidc-vpn-manager ./oidc-vpn-manager \
+  --namespace oidc-vpn-manager \
   --dry-run --debug
 ```
 
 ## 📞 Support
 
 For questions and issues:
-1. Check the chart-specific README in `openvpn-manager/README.md`
+1. Check the chart-specific README in `oidc-vpn-manager/README.md`
 2. Review pod logs and Kubernetes events
 3. Verify all prerequisites are met
 4. Check OIDC provider configuration

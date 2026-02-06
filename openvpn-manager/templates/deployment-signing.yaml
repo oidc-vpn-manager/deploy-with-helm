@@ -2,9 +2,9 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "openvpn-manager.signing.fullname" . }}
+  name: {{ include "oidc-vpn-manager.signing.fullname" . }}
   labels:
-    {{- include "openvpn-manager.labels" . | nindent 4 }}
+    {{- include "oidc-vpn-manager.labels" . | nindent 4 }}
     app.kubernetes.io/component: signing
 spec:
   replicas: {{ .Values.signing.replicaCount }}
@@ -15,28 +15,28 @@ spec:
       maxUnavailable: 0
   selector:
     matchLabels:
-      {{- include "openvpn-manager.selectorLabels" . | nindent 6 }}
+      {{- include "oidc-vpn-manager.selectorLabels" . | nindent 6 }}
       app.kubernetes.io/component: signing
   template:
     metadata:
       annotations:
         checksum/secret: {{ include (print $.Template.BasePath "/secrets.yaml") . | sha256sum }}
       labels:
-        {{- include "openvpn-manager.selectorLabels" . | nindent 8 }}
+        {{- include "oidc-vpn-manager.selectorLabels" . | nindent 8 }}
         app.kubernetes.io/component: signing
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      serviceAccountName: {{ include "openvpn-manager.serviceAccountName" . }}
+      serviceAccountName: {{ include "oidc-vpn-manager.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
         - name: signing
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
-          image: {{ include "openvpn-manager.image" (dict "registry" .Values.image.registry "repository" .Values.image.repository "component" "signing" "tag" .Values.signing.image.tag "Chart" .Chart "Values" .Values) }}
+          image: {{ include "oidc-vpn-manager.image" (dict "registry" .Values.image.registry "repository" .Values.image.repository "component" "signing" "tag" .Values.signing.image.tag "Chart" .Chart "Values" .Values) }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - name: http
@@ -66,24 +66,24 @@ spec:
             - name: INTERMEDIATE_CA_KEY_PASSPHRASE
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.secrets.caKeyPassphrase.name | default (printf "%s-ca-key-passphrase" (include "openvpn-manager.fullname" .)) }}
+                  name: {{ .Values.secrets.caKeyPassphrase.name | default (printf "%s-ca-key-passphrase" (include "oidc-vpn-manager.fullname" .)) }}
                   key: {{ .Values.secrets.caKeyPassphrase.key | default "passphrase" }}
             - name: SIGNING_SERVICE_API_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.secrets.signingApiSecret.name | default (printf "%s-signing-api-secret" (include "openvpn-manager.fullname" .)) }}
+                  name: {{ .Values.secrets.signingApiSecret.name | default (printf "%s-signing-api-secret" (include "oidc-vpn-manager.fullname" .)) }}
                   key: {{ .Values.secrets.signingApiSecret.key | default "api-secret" }}
             - name: CERTTRANSPARENCY_SERVICE_URL
-              value: "http://{{ include "openvpn-manager.certtransparency.fullname" . }}:{{ .Values.certtransparency.service.port }}/api/v1"
+              value: "http://{{ include "oidc-vpn-manager.certtransparency.fullname" . }}:{{ .Values.certtransparency.service.port }}/api/v1"
             - name: CT_SERVICE_API_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.secrets.ctApiSecret.name | default (printf "%s-ct-api-secret" (include "openvpn-manager.fullname" .)) }}
+                  name: {{ .Values.secrets.ctApiSecret.name | default (printf "%s-ct-api-secret" (include "oidc-vpn-manager.fullname" .)) }}
                   key: {{ .Values.secrets.ctApiSecret.key | default "api-secret" }}
             - name: FLASK_SECRET_KEY
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.secrets.flaskSecretKey.signing.name | default (printf "%s-flask-secret-key-signing" (include "openvpn-manager.fullname" .)) }}
+                  name: {{ .Values.secrets.flaskSecretKey.signing.name | default (printf "%s-flask-secret-key-signing" (include "oidc-vpn-manager.fullname" .)) }}
                   key: {{ .Values.secrets.flaskSecretKey.signing.key | default "flask-secret-key" }}
             - name: INTERMEDIATE_CA_KEY_FILE
               value: /pki-key/intermediate-ca.key
@@ -101,10 +101,10 @@ spec:
       volumes:
         - name: pki-certs
           secret:
-            secretName: {{ .Values.secrets.pkiCert.name | default (printf "%s-pki-cert" (include "openvpn-manager.fullname" .)) }}
+            secretName: {{ .Values.secrets.pkiCert.name | default (printf "%s-pki-cert" (include "oidc-vpn-manager.fullname" .)) }}
         - name: pki-keys
           secret:
-            secretName: {{ .Values.secrets.pkiKey.name | default (printf "%s-pki-key" (include "openvpn-manager.fullname" .)) }}
+            secretName: {{ .Values.secrets.pkiKey.name | default (printf "%s-pki-key" (include "oidc-vpn-manager.fullname" .)) }}
         - name: tmp
           emptyDir: {}
       {{- with .Values.nodeSelector }}

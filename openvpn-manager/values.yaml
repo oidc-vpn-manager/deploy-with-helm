@@ -1,4 +1,4 @@
-# Default values for openvpn-manager
+# Default values for oidc-vpn-manager
 # This is a YAML-formatted file.
 
 global:
@@ -7,7 +7,7 @@ global:
 # Image configuration
 image:
   registry: ghcr.io
-  repository: openvpn-manager
+  repository: oidc-vpn-manager
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
   tag: ""
@@ -71,7 +71,7 @@ frontend:
       className: "nginx"
       host: "vpn.example.com"
       tls: true
-      tlsSecretName: "openvpn-manager-combined-tls"
+      tlsSecretName: "oidc-vpn-manager-combined-tls"
       annotations:
         nginx.ingress.kubernetes.io/ssl-redirect: "true"
         nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
@@ -90,7 +90,7 @@ frontend:
       className: "nginx"
       host: "vpn.example.com"
       tls: true
-      tlsSecretName: "openvpn-manager-user-tls"
+      tlsSecretName: "oidc-vpn-manager-user-tls"
       annotations:
         nginx.ingress.kubernetes.io/ssl-redirect: "true"
         nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
@@ -109,7 +109,7 @@ frontend:
       className: "nginx"
       host: "admin.vpn.example.com"
       tls: true
-      tlsSecretName: "openvpn-manager-admin-tls"
+      tlsSecretName: "oidc-vpn-manager-admin-tls"
       annotations:
         nginx.ingress.kubernetes.io/ssl-redirect: "true"
         nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
@@ -229,7 +229,7 @@ affinity:
           - key: app.kubernetes.io/name
             operator: In
             values:
-            - openvpn-manager
+            - oidc-vpn-manager
         topologyKey: kubernetes.io/hostname
 
 

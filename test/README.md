@@ -88,29 +88,29 @@ The test configuration deploys:
 
 ### Check pod status:
 ```bash
-kubectl get pods -n openvpn-manager
+kubectl get pods -n oidc-vpn-manager
 kubectl get pods -n postgresql  
 kubectl get pods -n oidc
 ```
 
 ### View logs:
 ```bash
-kubectl logs -l app.kubernetes.io/name=openvpn-manager -n openvpn-manager
+kubectl logs -l app.kubernetes.io/name=oidc-vpn-manager -n oidc-vpn-manager
 ```
 
 ### Check ingress and networking:
 ```bash
 kubectl get ingress --all-namespaces
-kubectl get networkpolicies -n openvpn-manager
+kubectl get networkpolicies -n oidc-vpn-manager
 ```
 
 ### Port forwarding (alternative to ingress):
 ```bash
-kubectl port-forward -n openvpn-manager svc/openvpn-test-openvpn-manager-frontend-user 8080:8600
-kubectl port-forward -n openvpn-manager svc/openvpn-test-openvpn-manager-frontend-admin 8081:8600
+kubectl port-forward -n oidc-vpn-manager svc/openvpn-test-oidc-vpn-manager-frontend-user 8080:8600
+kubectl port-forward -n oidc-vpn-manager svc/openvpn-test-oidc-vpn-manager-frontend-admin 8081:8600
 ```
 
 ### Test external OIDC connectivity from pods:
 ```bash
-kubectl exec -n openvpn-manager deployment/openvpn-test-openvpn-manager-frontend-user -- curl -s https://tinyoidc.sprig.gs/.well-known/openid-configuration
+kubectl exec -n oidc-vpn-manager deployment/openvpn-test-oidc-vpn-manager-frontend-user -- curl -s https://tinyoidc.sprig.gs/.well-known/openid-configuration
 ```

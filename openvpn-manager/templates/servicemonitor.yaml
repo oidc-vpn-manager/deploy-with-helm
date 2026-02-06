@@ -2,20 +2,20 @@
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  name: {{ include "openvpn-manager.fullname" . }}
+  name: {{ include "oidc-vpn-manager.fullname" . }}
   {{- if .Values.monitoring.serviceMonitor.namespace }}
   namespace: {{ .Values.monitoring.serviceMonitor.namespace }}
   {{- end }}
   labels:
-    {{- include "openvpn-manager.labels" . | nindent 4 }}
+    {{- include "oidc-vpn-manager.labels" . | nindent 4 }}
     {{- if .Values.monitoring.serviceMonitor.labels }}
     {{- toYaml .Values.monitoring.serviceMonitor.labels | nindent 4 }}
     {{- end }}
 spec:
-  jobLabel: {{ include "openvpn-manager.name" . }}
+  jobLabel: {{ include "oidc-vpn-manager.name" . }}
   selector:
     matchLabels:
-      {{- include "openvpn-manager.selectorLabels" . | nindent 6 }}
+      {{- include "oidc-vpn-manager.selectorLabels" . | nindent 6 }}
   endpoints:
   {{- if .Values.frontend.enabled }}
   - port: http

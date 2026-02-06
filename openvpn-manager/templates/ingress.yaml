@@ -1,5 +1,5 @@
 {{- if and .Values.frontend.enabled .Values.frontend.combinedService.enabled -}}
-{{- $fullName := include "openvpn-manager.fullname" . -}}
+{{- $fullName := include "oidc-vpn-manager.fullname" . -}}
 {{- if semverCompare ">=1.19-0" .Capabilities.KubeVersion.GitVersion -}}
 apiVersion: networking.k8s.io/v1
 {{- else if semverCompare ">=1.14-0" .Capabilities.KubeVersion.GitVersion -}}
@@ -11,7 +11,7 @@ kind: Ingress
 metadata:
   name: {{ $fullName }}-combined
   labels:
-    {{- include "openvpn-manager.labels" . | nindent 4 }}
+    {{- include "oidc-vpn-manager.labels" . | nindent 4 }}
   {{- with .Values.frontend.combinedService.ingress.annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
@@ -35,18 +35,18 @@ spec:
             backend:
               {{- if semverCompare ">=1.19-0" .Capabilities.KubeVersion.GitVersion }}
               service:
-                name: {{ include "openvpn-manager.frontend.fullname" . }}
+                name: {{ include "oidc-vpn-manager.frontend.fullname" . }}
                 port:
                   number: {{ .Values.frontend.service.port }}
               {{- else }}
-              serviceName: {{ include "openvpn-manager.frontend.fullname" . }}
+              serviceName: {{ include "oidc-vpn-manager.frontend.fullname" . }}
               servicePort: {{ .Values.frontend.service.port }}
               {{- end }}
 ---
 {{- end }}
 
 {{- if and .Values.frontend.enabled .Values.frontend.userService.enabled -}}
-{{- $fullName := include "openvpn-manager.fullname" . -}}
+{{- $fullName := include "oidc-vpn-manager.fullname" . -}}
 {{- if semverCompare ">=1.19-0" .Capabilities.KubeVersion.GitVersion -}}
 apiVersion: networking.k8s.io/v1
 {{- else if semverCompare ">=1.14-0" .Capabilities.KubeVersion.GitVersion -}}
@@ -58,7 +58,7 @@ kind: Ingress
 metadata:
   name: {{ $fullName }}-user
   labels:
-    {{- include "openvpn-manager.labels" . | nindent 4 }}
+    {{- include "oidc-vpn-manager.labels" . | nindent 4 }}
   {{- with .Values.frontend.userService.ingress.annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
@@ -82,18 +82,18 @@ spec:
             backend:
               {{- if semverCompare ">=1.19-0" .Capabilities.KubeVersion.GitVersion }}
               service:
-                name: {{ include "openvpn-manager.frontend.fullname" . }}-user
+                name: {{ include "oidc-vpn-manager.frontend.fullname" . }}-user
                 port:
                   number: {{ .Values.frontend.service.port }}
               {{- else }}
-              serviceName: {{ include "openvpn-manager.frontend.fullname" . }}-user
+              serviceName: {{ include "oidc-vpn-manager.frontend.fullname" . }}-user
               servicePort: {{ .Values.frontend.service.port }}
               {{- end }}
 ---
 {{- end }}
 
 {{- if and .Values.frontend.enabled .Values.frontend.adminService.enabled -}}
-{{- $fullName := include "openvpn-manager.fullname" . -}}
+{{- $fullName := include "oidc-vpn-manager.fullname" . -}}
 {{- if semverCompare ">=1.19-0" .Capabilities.KubeVersion.GitVersion -}}
 apiVersion: networking.k8s.io/v1
 {{- else if semverCompare ">=1.14-0" .Capabilities.KubeVersion.GitVersion -}}
@@ -105,7 +105,7 @@ kind: Ingress
 metadata:
   name: {{ $fullName }}-admin
   labels:
-    {{- include "openvpn-manager.labels" . | nindent 4 }}
+    {{- include "oidc-vpn-manager.labels" . | nindent 4 }}
   {{- with .Values.frontend.adminService.ingress.annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
@@ -129,11 +129,11 @@ spec:
             backend:
               {{- if semverCompare ">=1.19-0" .Capabilities.KubeVersion.GitVersion }}
               service:
-                name: {{ include "openvpn-manager.frontend.fullname" . }}-admin
+                name: {{ include "oidc-vpn-manager.frontend.fullname" . }}-admin
                 port:
                   number: {{ .Values.frontend.service.port }}
               {{- else }}
-              serviceName: {{ include "openvpn-manager.frontend.fullname" . }}-admin
+              serviceName: {{ include "oidc-vpn-manager.frontend.fullname" . }}-admin
               servicePort: {{ .Values.frontend.service.port }}
               {{- end }}
 ---

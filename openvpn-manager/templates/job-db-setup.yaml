@@ -2,9 +2,9 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: {{ include "openvpn-manager.fullname" . }}-db-setup
+  name: {{ include "oidc-vpn-manager.fullname" . }}-db-setup
   labels:
-    {{- include "openvpn-manager.labels" . | nindent 4 }}
+    {{- include "oidc-vpn-manager.labels" . | nindent 4 }}
     app.kubernetes.io/component: db-setup
   annotations:
     "helm.sh/hook": pre-install,pre-upgrade
@@ -14,7 +14,7 @@ spec:
   template:
     metadata:
       labels:
-        {{- include "openvpn-manager.selectorLabels" . | nindent 8 }}
+        {{- include "oidc-vpn-manager.selectorLabels" . | nindent 8 }}
         app.kubernetes.io/component: db-setup
     spec:
       restartPolicy: Never
@@ -56,7 +56,7 @@ spec:
             - name: PGPASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "openvpn-manager.fullname" . }}-db-users
+                  name: {{ include "oidc-vpn-manager.fullname" . }}-db-users
                   key: frontend-password
             - name: PGDATABASE
               value: {{ required "You must specify a database name!" .Values.frontend.config.database.name | quote }}
@@ -94,7 +94,7 @@ spec:
             - name: PGPASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "openvpn-manager.fullname" . }}-db-users
+                  name: {{ include "oidc-vpn-manager.fullname" . }}-db-users
                   key: certtransparency-password
             - name: PGDATABASE
               value: {{ required "You must specify a database name!" .Values.certtransparency.config.database.name | quote }}
@@ -102,7 +102,7 @@ spec:
       containers:
         {{- if or (and .Values.frontend.enabled .Values.frontend.adminService.enabled) (and .Values.frontend.enabled .Values.frontend.userService.enabled) }}
         - name: frontend-migration
-          image: {{ include "openvpn-manager.image" (dict "registry" .Values.image.registry "repository" .Values.image.repository "component" "frontend" "tag" .Values.frontend.image.tag "Chart" .Chart "Values" .Values) }}
+          image: {{ include "oidc-vpn-manager.image" (dict "registry" .Values.image.registry "repository" .Values.image.repository "component" "frontend" "tag" .Values.frontend.image.tag "Chart" .Chart "Values" .Values) }}
           command: ["./run_migrate.sh"]
           env:
             - name: ENVIRONMENT
@@ -110,17 +110,17 @@ spec:
             - name: DATABASE_URL
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "openvpn-manager.fullname" . }}-db-users
+                  name: {{ include "oidc-vpn-manager.fullname" . }}-db-users
                   key: frontend-uri
             - name: FLASK_SECRET_KEY
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.secrets.flaskSecretKey.frontend.name | default (printf "%s-flask-secret-key-frontend" (include "openvpn-manager.fullname" .)) }}
+                  name: {{ .Values.secrets.flaskSecretKey.frontend.name | default (printf "%s-flask-secret-key-frontend" (include "oidc-vpn-manager.fullname" .)) }}
                   key: {{ .Values.secrets.flaskSecretKey.frontend.key | default "flask-secret-key" }}
             - name: FERNET_ENCRYPTION_KEY
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.secrets.fernet.name | default (printf "%s-fernet" (include "openvpn-manager.fullname" .)) }}
+                  name: {{ .Values.secrets.fernet.name | default (printf "%s-fernet" (include "oidc-vpn-manager.fullname" .)) }}
                   key: {{ .Values.secrets.fernet.key | default "fernet-key" }}
           volumeMounts:
             - name: tmp
@@ -128,7 +128,7 @@ spec:
         {{- end }}
         {{- if .Values.certtransparency.enabled }}
         - name: certtransparency-migration
-          image: {{ include "openvpn-manager.image" (dict "registry" .Values.image.registry "repository" .Values.image.repository "component" "certtransparency" "tag" .Values.certtransparency.image.tag "Chart" .Chart "Values" .Values) }}
+          image: {{ include "oidc-vpn-manager.image" (dict "registry" .Values.image.registry "repository" .Values.image.repository "component" "certtransparency" "tag" .Values.certtransparency.image.tag "Chart" .Chart "Values" .Values) }}
           command: ["./run_migrate.sh"]
           env:
             - name: ENVIRONMENT
@@ -136,17 +136,17 @@ spec:
             - name: DATABASE_URL
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "openvpn-manager.fullname" . }}-db-users
+                  name: {{ include "oidc-vpn-manager.fullname" . }}-db-users
                   key: certtransparency-uri
             - name: FLASK_SECRET_KEY
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.secrets.flaskSecretKey.certtransparency.name | default (printf "%s-flask-secret-key-certtransparency" (include "openvpn-manager.fullname" .)) }}
+                  name: {{ .Values.secrets.flaskSecretKey.certtransparency.name | default (printf "%s-flask-secret-key-certtransparency" (include "oidc-vpn-manager.fullname" .)) }}
                   key: {{ .Values.secrets.flaskSecretKey.certtransparency.key | default "flask-secret-key" }}
             - name: FERNET_ENCRYPTION_KEY
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.secrets.fernet.name | default (printf "%s-fernet" (include "openvpn-manager.fullname" .)) }}
+                  name: {{ .Values.secrets.fernet.name | default (printf "%s-fernet" (include "oidc-vpn-manager.fullname" .)) }}
                   key: {{ .Values.secrets.fernet.key | default "fernet-key" }}
           volumeMounts:
             - name: tmp

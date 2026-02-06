@@ -102,7 +102,7 @@ else
     exit 1
 fi
 
-# Create PKI Secret with base64 encoded certificates (will be created in openvpn-manager namespace later)
+# Create PKI Secret with base64 encoded certificates (will be created in oidc-vpn-manager namespace later)
 echo "🔑 Preparing PKI Secret with test certificates..."
 # Use dynamic path resolution relative to this script
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../../" && pwd)"
@@ -124,29 +124,29 @@ echo "💻  kubectl create namespace postgresql --dry-run=client -o yaml | kubec
 kubectl create namespace postgresql --dry-run=client -o yaml | kubectl apply -f -
 echo "💻  kubectl create namespace oidc --dry-run=client -o yaml | kubectl apply -f -"
 kubectl create namespace oidc --dry-run=client -o yaml | kubectl apply -f -
-echo "💻  kubectl create namespace openvpn-manager --dry-run=client -o yaml | kubectl apply -f -"
-kubectl create namespace openvpn-manager --dry-run=client -o yaml | kubectl apply -f -
+echo "💻  kubectl create namespace oidc-vpn-manager --dry-run=client -o yaml | kubectl apply -f -"
+kubectl create namespace oidc-vpn-manager --dry-run=client -o yaml | kubectl apply -f -
 
 # Copy pull secret to all namespaces
 echo "🔐 Copying pull secret to all namespaces..."
-for namespace in postgresql oidc openvpn-manager; do
+for namespace in postgresql oidc oidc-vpn-manager; do
     echo "💻  kubectl get secret ghcr-pull-secret -o yaml | sed 's/namespace: default/namespace: ${namespace}/' | kubectl apply -f -"
     kubectl get secret ghcr-pull-secret -o yaml | sed "s/namespace: default/namespace: ${namespace}/" | kubectl apply -f -
     echo "✅ Pull secret copied to ${namespace} namespace"
 done
 
-# Create PKI Secret in openvpn-manager namespace
-echo "🔑 Creating PKI Secret in openvpn-manager namespace..."
+# Create PKI Secret in oidc-vpn-manager namespace
+echo "🔑 Creating PKI Secret in oidc-vpn-manager namespace..."
 if [ -d "$PKI_DIR" ]; then
-    # Create PKI Secret YAML with base64 encoded files in the openvpn-manager namespace
+    # Create PKI Secret YAML with base64 encoded files in the oidc-vpn-manager namespace
     cat > /tmp/pki-secret.yaml << EOF
 apiVersion: v1
 kind: Secret
 metadata:
   name: pki-certs
-  namespace: openvpn-manager
+  namespace: oidc-vpn-manager
   labels:
-    app.kubernetes.io/name: openvpn-manager
+    app.kubernetes.io/name: oidc-vpn-manager
     app.kubernetes.io/instance: openvpn-test
     app.kubernetes.io/component: pki
 type: Opaque
@@ -159,7 +159,7 @@ EOF
     echo "💻  kubectl apply -f /tmp/pki-secret.yaml"
     kubectl apply -f /tmp/pki-secret.yaml
     rm -f /tmp/pki-secret.yaml
-    echo "✅ PKI Secret created in openvpn-manager namespace"
+    echo "✅ PKI Secret created in oidc-vpn-manager namespace"
 else
     echo "⚠️  PKI directory not found - skipping PKI Secret creation"
 fi
@@ -176,15 +176,15 @@ helm install oidc-test ./test/tiny-oidc --namespace oidc --values ./test/tiny-oi
 
 # Deploy OpenVPN Manager main chart (without PostgreSQL and tiny-oidc)
 echo "🚀 Deploying OpenVPN Manager chart..."
-echo "💻  helm install openvpn-test ./openvpn-manager --namespace openvpn-manager --values ./test/test-values.yaml"
-helm install openvpn-test ./openvpn-manager --namespace openvpn-manager --values ./test/test-values.yaml
+echo "💻  helm install openvpn-test ./oidc-vpn-manager --namespace oidc-vpn-manager --values ./test/test-values.yaml"
+helm install openvpn-test ./oidc-vpn-manager --namespace oidc-vpn-manager --values ./test/test-values.yaml
 
 # Clean up temporary PKI Secret after post-install hooks complete
 echo "🧹 Cleaning up temporary PKI Secret after deployment..."
-echo "💻  kubectl wait --for=condition=Complete job/openvpn-test-openvpn-manager-pki-setup --namespace openvpn-manager --timeout=300s"
-kubectl wait --for=condition=Complete job/openvpn-test-openvpn-manager-pki-setup --namespace openvpn-manager --timeout=300s || echo "PKI setup job timeout - continuing anyway"
-echo "💻  kubectl delete secret pki-certs --namespace openvpn-manager"
-kubectl delete secret pki-certs --namespace openvpn-manager || echo "PKI Secret already deleted or not found"
+echo "💻  kubectl wait --for=condition=Complete job/openvpn-test-oidc-vpn-manager-pki-setup --namespace oidc-vpn-manager --timeout=300s"
+kubectl wait --for=condition=Complete job/openvpn-test-oidc-vpn-manager-pki-setup --namespace oidc-vpn-manager --timeout=300s || echo "PKI setup job timeout - continuing anyway"
+echo "💻  kubectl delete secret pki-certs --namespace oidc-vpn-manager"
+kubectl delete secret pki-certs --namespace oidc-vpn-manager || echo "PKI Secret already deleted or not found"
 echo "✅ PKI Secret cleanup completed"
 
 # Configure CoreDNS to resolve tinyoidc.localhost to tiny-oidc service
@@ -203,8 +203,8 @@ echo "💻  kubectl wait --for=condition=ready pod --all --namespace postgresql 
 kubectl wait --for=condition=ready pod --all --namespace postgresql --timeout=300s || echo "PostgreSQL pods may still be starting..."
 echo "💻  kubectl wait --for=condition=ready pod --all --namespace oidc --timeout=300s"
 kubectl wait --for=condition=ready pod --all --namespace oidc --timeout=300s || echo "OIDC pods may still be starting..."
-echo "💻  kubectl wait --for=condition=ready pod --all --namespace openvpn-manager --timeout=600s"
-kubectl wait --for=condition=ready pod --all --namespace openvpn-manager --timeout=600s || echo "OpenVPN Manager pods may still be starting..."
+echo "💻  kubectl wait --for=condition=ready pod --all --namespace oidc-vpn-manager --timeout=600s"
+kubectl wait --for=condition=ready pod --all --namespace oidc-vpn-manager --timeout=600s || echo "OpenVPN Manager pods may still be starting..."
 
 echo ""
 echo "🎉 OpenVPN Manager test environment is ready!"
@@ -218,7 +218,7 @@ kubectl get pods --namespace postgresql
 echo "OIDC namespace:"
 kubectl get pods --namespace oidc
 echo "OpenVPN Manager namespace:"
-kubectl get pods --namespace openvpn-manager
+kubectl get pods --namespace oidc-vpn-manager
 echo ""
 echo "🌐 Ingress Routes:"
 kubectl get ingress --all-namespaces
@@ -230,7 +230,7 @@ echo "  🔐 Tiny OIDC:      http://tinyoidc.localhost:8080"
 echo ""
 echo "🐛 Troubleshooting commands:"
 echo "  kubectl get pods                    # Check pod status"
-echo "  kubectl logs -l app.kubernetes.io/name=openvpn-manager  # View logs"
+echo "  kubectl logs -l app.kubernetes.io/name=oidc-vpn-manager  # View logs"
 echo "  kubectl get ingress                 # Check ingress status"
 echo ""
 echo "🧹 To clean up when done:"
