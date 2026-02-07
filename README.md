@@ -1,10 +1,10 @@
-# OpenVPN Manager Helm Charts
+# OIDC VPN Manager Helm Charts
 
-This directory contains Helm charts for deploying OpenVPN Manager on Kubernetes clusters.
+This directory contains Helm charts for deploying OIDC VPN Manager on Kubernetes clusters.
 
 ## 📊 Overview
 
-OpenVPN Manager provides a comprehensive certificate management system with:
+OIDC VPN Manager provides a comprehensive certificate management system with:
 - **Frontend Web UI** - User-facing application for OpenVPN profile generation
 - **Signing Service** - Secure certificate signing isolated from frontend
 - **Certificate Transparency** - Audit logging for all issued certificates  
@@ -14,7 +14,7 @@ OpenVPN Manager provides a comprehensive certificate management system with:
 ## 📁 Charts
 
 ### `oidc-vpn-manager/`
-The main Helm chart for deploying the complete OpenVPN Manager system.
+The main Helm chart for deploying the complete OIDC VPN Manager system.
 
 **Features:**
 - Production-ready PostgreSQL deployment via Bitnami chart
@@ -194,7 +194,7 @@ postgresql:
 
 ### TLS-Crypt Configuration
 
-OpenVPN Manager supports both tls-crypt v1 (static keys) and v2 (per-client keys) for enhanced security.
+OIDC VPN Manager supports both tls-crypt v1 (static keys) and v2 (per-client keys) for enhanced security.
 
 **Generate TLS-Crypt Key:**
 ```bash

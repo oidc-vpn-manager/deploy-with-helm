@@ -1,4 +1,4 @@
-# Test values for OpenVPN Manager Helm chart
+# Test values for OIDC VPN Manager Helm chart
 # This configuration is suitable for local testing with kind in devcontainers
 
 # Image pull secrets for private registries  
@@ -109,7 +109,7 @@ frontend:
   config:
     environment: production
     logLevel: INFO
-    siteShortName: "OpenVPN Manager (Test)"
+    siteShortName: "OIDC VPN Manager (Test)"
     openvpnServerHostname: "vpn.localhost"
     oidc:
       discoveryUrl: "https://tinyoidc.authenti-kate.org/.well-known/openid-configuration"

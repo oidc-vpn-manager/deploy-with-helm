@@ -1,6 +1,6 @@
 apiVersion: v2
 name: postgresql
-description: PostgreSQL database for OpenVPN Manager testing
+description: PostgreSQL database for OIDC VPN Manager testing
 type: application
 version: 1.0.0
 appVersion: "17-alpine"
@@ -12,4 +12,4 @@ home: https://www.postgresql.org/
 sources:
   - https://github.com/postgres/postgres
 maintainers:
-  - name: OpenVPN Manager Team
+  - name: OIDC VPN Manager Team

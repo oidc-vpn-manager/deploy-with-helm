@@ -5,7 +5,7 @@ CLUSTER_NAME="openvpn-test"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 HELM_CHART_DIR="$(dirname ${SCRIPT_DIR})"
 
-echo "🚀 Setting up complete Kubernetes test environment for OpenVPN Manager..."
+echo "🚀 Setting up complete Kubernetes test environment for OIDC VPN Manager..."
 echo ""
 
 # Install dependencies if not present
@@ -174,8 +174,8 @@ echo "🔐 Deploying Tiny OIDC chart..."
 echo "💻  helm install oidc-test ./test/tiny-oidc --namespace oidc --values ./test/tiny-oidc-values.yaml"
 helm install oidc-test ./test/tiny-oidc --namespace oidc --values ./test/tiny-oidc-values.yaml
 
-# Deploy OpenVPN Manager main chart (without PostgreSQL and tiny-oidc)
-echo "🚀 Deploying OpenVPN Manager chart..."
+# Deploy OIDC VPN Manager main chart (without PostgreSQL and tiny-oidc)
+echo "🚀 Deploying OIDC VPN Manager chart..."
 echo "💻  helm install openvpn-test ./oidc-vpn-manager --namespace oidc-vpn-manager --values ./test/test-values.yaml"
 helm install openvpn-test ./oidc-vpn-manager --namespace oidc-vpn-manager --values ./test/test-values.yaml
 
@@ -204,10 +204,10 @@ kubectl wait --for=condition=ready pod --all --namespace postgresql --timeout=30
 echo "💻  kubectl wait --for=condition=ready pod --all --namespace oidc --timeout=300s"
 kubectl wait --for=condition=ready pod --all --namespace oidc --timeout=300s || echo "OIDC pods may still be starting..."
 echo "💻  kubectl wait --for=condition=ready pod --all --namespace oidc-vpn-manager --timeout=600s"
-kubectl wait --for=condition=ready pod --all --namespace oidc-vpn-manager --timeout=600s || echo "OpenVPN Manager pods may still be starting..."
+kubectl wait --for=condition=ready pod --all --namespace oidc-vpn-manager --timeout=600s || echo "OIDC VPN Manager pods may still be starting..."
 
 echo ""
-echo "🎉 OpenVPN Manager test environment is ready!"
+echo "🎉 OIDC VPN Manager test environment is ready!"
 echo ""
 echo "📊 Cluster Status:"
 kubectl get nodes
@@ -217,7 +217,7 @@ echo "PostgreSQL namespace:"
 kubectl get pods --namespace postgresql
 echo "OIDC namespace:"
 kubectl get pods --namespace oidc
-echo "OpenVPN Manager namespace:"
+echo "OIDC VPN Manager namespace:"
 kubectl get pods --namespace oidc-vpn-manager
 echo ""
 echo "🌐 Ingress Routes:"

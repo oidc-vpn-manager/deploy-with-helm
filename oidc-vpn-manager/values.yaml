@@ -120,7 +120,7 @@ frontend:
   config:
     environment: production
     logLevel: INFO
-    siteShortName: "OpenVPN Manager"
+    siteShortName: "OIDC VPN Manager"
     openvpnServerHostname: "vpn.example.com"
     oidc:
       discoveryUrl: "https://your-oidc-provider.com/.well-known/openid-configuration"

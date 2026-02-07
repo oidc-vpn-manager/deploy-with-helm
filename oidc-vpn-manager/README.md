@@ -1,6 +1,6 @@
-# OpenVPN Manager Helm Chart
+# OIDC VPN Manager Helm Chart
 
-This Helm chart deploys OpenVPN Manager, a comprehensive certificate management system with OIDC authentication and Certificate Transparency logging, on Kubernetes.
+This Helm chart deploys OIDC VPN Manager, a comprehensive certificate management system with OIDC authentication and Certificate Transparency logging, on Kubernetes.
 
 ## Prerequisites
 

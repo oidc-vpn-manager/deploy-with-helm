@@ -1,4 +1,4 @@
-# OpenVPN Manager Test Environment Makefile
+# OIDC VPN Manager Test Environment Makefile
 # Converts functionality from setup-test-cluster.sh into Make targets
 
 CLUSTER_NAME := openvpn-test
@@ -109,9 +109,9 @@ postgresql:
 		echo "💻  helm install postgresql-test ./test/postgresql --namespace postgresql --values ./test/postgresql/test-values.yaml" && \
 		helm install postgresql-test ./test/postgresql --namespace postgresql --values ./test/postgresql/test-values.yaml
 
-## Deploy OpenVPN Manager chart
+## Deploy OIDC VPN Manager chart
 openvpn: secrets
-	@echo "🚀 Deploying OpenVPN Manager chart..."
+	@echo "🚀 Deploying OIDC VPN Manager chart..."
 	@cd $(HELM_CHART_DIR) && \
 		if helm ls --namespace oidc-vpn-manager | grep -q 'openvpn-test' ; then \
 			echo "💻  helm upgrade openvpn-test ./oidc-vpn-manager --namespace oidc-vpn-manager --values ./test/test-values.yaml" && \
@@ -120,7 +120,7 @@ openvpn: secrets
 			echo "💻  helm install openvpn-test ./oidc-vpn-manager --namespace oidc-vpn-manager --values ./test/test-values.yaml" && \
 			helm install openvpn-test ./oidc-vpn-manager --namespace oidc-vpn-manager --values ./test/test-values.yaml --set-string secrets.pkiCert.intermediate=$$(base64 -w 0 "test/pki/intermediate-ca.crt"),secrets.pkiCert.root=$$(base64 -w 0 "test/pki/root-ca.crt"),secrets.pkiKey.intermediate=$$(base64 -w 0 "test/pki/intermediate-ca.key") ; \
 		fi
-	@echo "✅ OpenVPN Manager chart deployed successfully"
+	@echo "✅ OIDC VPN Manager chart deployed successfully"
 
 ## Configure CoreDNS for tinyoidc.localhost resolution
 coredns:
@@ -139,9 +139,9 @@ status:
 	@echo "💻  kubectl wait --for=condition=ready pod --all --namespace postgresql --timeout=300s"
 	@kubectl wait --for=condition=ready pod --all --namespace postgresql --timeout=300s || echo "PostgreSQL pods may still be starting..."
 	@echo "💻  kubectl wait --for=condition=ready pod --all --namespace oidc-vpn-manager --timeout=600s"
-	@kubectl wait --for=condition=ready pod --all --namespace oidc-vpn-manager --timeout=600s || echo "OpenVPN Manager pods may still be starting..."
+	@kubectl wait --for=condition=ready pod --all --namespace oidc-vpn-manager --timeout=600s || echo "OIDC VPN Manager pods may still be starting..."
 	@echo ""
-	@echo "🎉 OpenVPN Manager test environment is ready!"
+	@echo "🎉 OIDC VPN Manager test environment is ready!"
 	@echo ""
 	@echo "📊 Cluster Status:"
 	@kubectl get nodes
@@ -149,7 +149,7 @@ status:
 	@echo "🏃 Running Services:"
 	@echo "PostgreSQL namespace:"
 	@kubectl get pods --namespace postgresql
-	@echo "OpenVPN Manager namespace:"
+	@echo "OIDC VPN Manager namespace:"
 	@kubectl get pods --namespace oidc-vpn-manager
 	@echo ""
 	@echo "🌐 Ingress Routes:"
@@ -169,7 +169,7 @@ status:
 
 ## Show help information
 help:
-	@echo "OpenVPN Manager Test Environment Makefile"
+	@echo "OIDC VPN Manager Test Environment Makefile"
 	@echo ""
 	@echo "Available targets:"
 	@echo ""
@@ -188,5 +188,5 @@ help:
 	@echo "  make namespaces - Create namespaces and PKI secrets"
 	@echo "  make postgresql - Deploy PostgreSQL"
 	@echo "  make oidc       - Deploy Tiny OIDC"
-	@echo "  make openvpn    - Deploy OpenVPN Manager"
+	@echo "  make openvpn    - Deploy OIDC VPN Manager"
 	@echo "  make coredns    - Configure DNS for tinyoidc.localhost"

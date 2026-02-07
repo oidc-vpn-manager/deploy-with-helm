@@ -1,6 +1,6 @@
-# OpenVPN Manager Helm Chart Testing
+# OIDC VPN Manager Helm Chart Testing
 
-This directory contains tools for testing the OpenVPN Manager Helm chart in a local Kubernetes environment using kind (Kubernetes in Docker).
+This directory contains tools for testing the OIDC VPN Manager Helm chart in a local Kubernetes environment using kind (Kubernetes in Docker).
 
 ## Quick Start
 
@@ -80,7 +80,7 @@ The test configuration deploys:
 - `make coredns` - Configure DNS resolution  
 - `make secrets` - Set up pull secrets from .env
 - `make postgresql` - Deploy PostgreSQL database
-- `make openvpn` - Deploy OpenVPN Manager
+- `make openvpn` - Deploy OIDC VPN Manager
 - `make status` - Show cluster status and URLs
 - `make help` - Show available targets
 
