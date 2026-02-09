@@ -86,7 +86,6 @@ kubectl create secret generic oidc-vpn-manager-ca-key-passphrase \
 helm install oidc-vpn-manager ./oidc-vpn-manager \
   --namespace oidc-vpn-manager \
   --set ingress.hosts[0].host=vpn.yourdomain.com \
-  --set frontend.config.openvpnServerHostname=vpn.yourdomain.com \
   --set frontend.config.oidc.discoveryUrl=https://your-oidc-provider.com/.well-known/openid-configuration \
   --set frontend.config.oidc.clientId=your-client-id \
   --set webauth.config.oidc.discoveryUrl=https://your-oidc-provider.com/.well-known/openid-configuration \
@@ -111,7 +110,6 @@ helm install oidc-vpn-manager ./oidc-vpn-manager \
 |-----------|-------------|---------|
 | `frontend.enabled` | Enable frontend service | `true` |
 | `frontend.replicaCount` | Number of replicas | `2` |
-| `frontend.config.openvpnServerHostname` | OpenVPN server hostname | `vpn.example.com` |
 | `frontend.config.oidc.discoveryUrl` | OIDC discovery URL | Required |
 | `frontend.config.oidc.clientId` | OIDC client ID | Required |
 | `frontend.config.oidc.adminGroup` | Admin group name | `vpn-admins` |
@@ -154,7 +152,6 @@ global:
 frontend:
   replicaCount: 3
   config:
-    openvpnServerHostname: "vpn.yourcompany.com"
     oidc:
       discoveryUrl: "https://auth.yourcompany.com/.well-known/openid-configuration"
       clientId: "oidc-vpn-manager-prod"

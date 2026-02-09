@@ -91,8 +91,6 @@ spec:
                   key: {{ .Values.secrets.oidcClientSecret.key | default "client-secret" }}
             - name: OIDC_ADMIN_GROUP
               value: {{ .Values.frontend.config.oidc.adminGroup | quote }}
-            - name: OPENVPN_SERVER_HOSTNAME
-              value: {{ .Values.frontend.config.openvpnServerHostname | quote }}
             - name: FLASK_SECRET_KEY
               valueFrom:
                 secretKeyRef:

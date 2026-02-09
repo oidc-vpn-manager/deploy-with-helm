@@ -110,7 +110,6 @@ frontend:
     environment: production
     logLevel: INFO
     siteShortName: "OIDC VPN Manager (Test)"
-    openvpnServerHostname: "vpn.localhost"
     oidc:
       discoveryUrl: "https://tinyoidc.authenti-kate.org/.well-known/openid-configuration"
       clientId: "client_id_12decaf34bad56"
