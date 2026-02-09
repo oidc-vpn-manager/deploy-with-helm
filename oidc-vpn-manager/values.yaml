@@ -9,7 +9,7 @@ image:
   registry: ghcr.io
   repository: oidc-vpn-manager
   pullPolicy: IfNotPresent
-  # Overrides the image tag whose default is the chart appVersion.
+  # Overrides the image tag whose default is "latest".
   tag: ""
 
 imagePullSecrets: []
@@ -121,6 +121,7 @@ frontend:
     environment: production
     logLevel: INFO
     siteShortName: "OIDC VPN Manager"
+    forceHttps: false
     oidc:
       discoveryUrl: "https://your-oidc-provider.com/.well-known/openid-configuration"
       clientId: "your-production-client-id"

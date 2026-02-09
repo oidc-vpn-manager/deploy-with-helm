@@ -97,7 +97,7 @@ Image name helper
 {{- define "oidc-vpn-manager.image" -}}
 {{- $registry := .registry | default .Values.image.registry -}}
 {{- $repository := .repository | default .Values.image.repository -}}
-{{- $tag := .tag | default .Values.image.tag | default .Chart.AppVersion -}}
+{{- $tag := .tag | default .Values.image.tag | default "latest" -}}
 {{- printf "%s/%s/%s:%s" $registry $repository .component $tag }}
 {{- end }}
 

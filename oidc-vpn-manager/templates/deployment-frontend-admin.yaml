@@ -64,6 +64,8 @@ spec:
           env:
             - name: ENVIRONMENT
               value: {{ .Values.frontend.config.environment | quote }}
+            - name: FORCE_HTTPS
+              value: {{ .Values.frontend.config.forceHttps | default false | quote }}
             - name: DATABASE_URL
               valueFrom:
                 secretKeyRef:
@@ -117,7 +119,7 @@ spec:
               value: "/app/pki/intermediate-ca.crt"
             {{- if or .Values.secrets.tlsCrypt.value .Values.secrets.tlsCrypt.name }}
             - name: OPENVPN_TLS_CRYPT_KEY_FILE
-              value: "/app/pki/tls-crypt.key"
+              value: "/app/tls-crypt/tls-crypt.key"
             {{- end }}
           resources:
             {{- toYaml .Values.frontend.resources | nindent 12 }}
@@ -127,8 +129,7 @@ spec:
               readOnly: true
             {{- if or .Values.secrets.tlsCrypt.value .Values.secrets.tlsCrypt.name }}
             - name: tls-crypt
-              mountPath: /app/pki/tls-crypt.key
-              subPath: {{ .Values.secrets.tlsCrypt.key | default "tls-crypt.key" }}
+              mountPath: /app/tls-crypt
               readOnly: true
             {{- end }}
             - name: openvpn-templates

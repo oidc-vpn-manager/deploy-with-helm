@@ -102,7 +102,7 @@ helm install oidc-vpn-manager ./oidc-vpn-manager \
 | `global.storageClass` | Global storage class | `""` |
 | `image.registry` | Container registry | `ghcr.io` |
 | `image.repository` | Repository base path | `oidc-vpn-manager` |
-| `image.tag` | Image tag | `""` (uses appVersion) |
+| `image.tag` | Image tag | `""` (uses latest) |
 
 ### Frontend Configuration
 
@@ -112,6 +112,7 @@ helm install oidc-vpn-manager ./oidc-vpn-manager \
 | `frontend.replicaCount` | Number of replicas | `2` |
 | `frontend.config.oidc.discoveryUrl` | OIDC discovery URL | Required |
 | `frontend.config.oidc.clientId` | OIDC client ID | Required |
+| `frontend.config.forceHttps` | Force HTTPS redirects in frontend services | `false` |
 | `frontend.config.oidc.adminGroup` | Admin group name | `vpn-admins` |
 
 ### Database Configuration
