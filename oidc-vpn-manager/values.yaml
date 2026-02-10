@@ -197,13 +197,10 @@ applicationTls:
     cn: ""    # Default: container hostname
     san: ""   # Default: container hostname; comma-separated DNS names or IPs
   # Client-side TLS validation for inter-service HTTP calls
+  # Disable by-default clientValidation between peers (default certificates are self-signed)
   clientValidation:
-    signing: true           # Maps to SIGNING_SERVICE_URL_TLS_VALIDATE
-    certtransparency: true  # Maps to CERTTRANSPARENCY_SERVICE_URL_TLS_VALIDATE
-
-# Legacy ingress configuration (replaced by individual service ingresses)
-# ingress:
-#   enabled: false
+    signing: false           # Maps to SIGNING_SERVICE_URL_TLS_VALIDATE
+    certtransparency: false  # Maps to CERTTRANSPARENCY_SERVICE_URL_TLS_VALIDATE
 
 # Persistent Volume Claims
 persistence:
