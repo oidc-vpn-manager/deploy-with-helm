@@ -10,9 +10,9 @@ spec:
   type: {{ .Values.frontend.service.type }}
   ports:
     - port: {{ .Values.frontend.service.port }}
-      targetPort: http
+      targetPort: {{ if .Values.applicationTls.enabled }}https{{ else }}http{{ end }}
       protocol: TCP
-      name: http
+      name: {{ if .Values.applicationTls.enabled }}https{{ else }}http{{ end }}
   selector:
     {{- include "oidc-vpn-manager.selectorLabels" . | nindent 4 }}
     app.kubernetes.io/component: frontend
@@ -31,9 +31,9 @@ spec:
   type: {{ .Values.frontend.service.type }}
   ports:
     - port: {{ .Values.frontend.service.port }}
-      targetPort: http
+      targetPort: {{ if .Values.applicationTls.enabled }}https{{ else }}http{{ end }}
       protocol: TCP
-      name: http
+      name: {{ if .Values.applicationTls.enabled }}https{{ else }}http{{ end }}
   selector:
     {{- include "oidc-vpn-manager.selectorLabels" . | nindent 4 }}
     app.kubernetes.io/component: frontend-user
@@ -52,9 +52,9 @@ spec:
   type: {{ .Values.frontend.service.type }}
   ports:
     - port: {{ .Values.frontend.service.port }}
-      targetPort: http
+      targetPort: {{ if .Values.applicationTls.enabled }}https{{ else }}http{{ end }}
       protocol: TCP
-      name: http
+      name: {{ if .Values.applicationTls.enabled }}https{{ else }}http{{ end }}
   selector:
     {{- include "oidc-vpn-manager.selectorLabels" . | nindent 4 }}
     app.kubernetes.io/component: frontend-admin
@@ -73,9 +73,9 @@ spec:
   type: {{ .Values.signing.service.type }}
   ports:
     - port: {{ .Values.signing.service.port }}
-      targetPort: http
+      targetPort: {{ if .Values.applicationTls.enabled }}https{{ else }}http{{ end }}
       protocol: TCP
-      name: http
+      name: {{ if .Values.applicationTls.enabled }}https{{ else }}http{{ end }}
   selector:
     {{- include "oidc-vpn-manager.selectorLabels" . | nindent 4 }}
     app.kubernetes.io/component: signing
@@ -94,9 +94,9 @@ spec:
   type: {{ .Values.certtransparency.service.type }}
   ports:
     - port: {{ .Values.certtransparency.service.port }}
-      targetPort: http
+      targetPort: {{ if .Values.applicationTls.enabled }}https{{ else }}http{{ end }}
       protocol: TCP
-      name: http
+      name: {{ if .Values.applicationTls.enabled }}https{{ else }}http{{ end }}
   selector:
     {{- include "oidc-vpn-manager.selectorLabels" . | nindent 4 }}
     app.kubernetes.io/component: certtransparency

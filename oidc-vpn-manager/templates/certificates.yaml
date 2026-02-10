@@ -1,0 +1,103 @@
+{{- if and .Values.applicationTls.enabled .Values.applicationTls.certManager.enabled }}
+
+{{- if and .Values.frontend.enabled .Values.frontend.combinedService.enabled }}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ include "oidc-vpn-manager.frontend.fullname" . }}-app-tls
+  labels:
+    {{- include "oidc-vpn-manager.labels" . | nindent 4 }}
+    app.kubernetes.io/component: frontend
+spec:
+  secretName: {{ include "oidc-vpn-manager.frontend.fullname" . }}-app-tls
+  issuerRef:
+    name: {{ .Values.applicationTls.certManager.issuerRef.name }}
+    kind: {{ .Values.applicationTls.certManager.issuerRef.kind | default "ClusterIssuer" }}
+  dnsNames:
+    - {{ include "oidc-vpn-manager.frontend.fullname" . }}
+    - {{ include "oidc-vpn-manager.frontend.fullname" . }}.{{ .Release.Namespace }}.svc
+    - {{ include "oidc-vpn-manager.frontend.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local
+{{- end }}
+
+{{- if and .Values.frontend.enabled .Values.frontend.userService.enabled }}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ include "oidc-vpn-manager.frontend.fullname" . }}-user-app-tls
+  labels:
+    {{- include "oidc-vpn-manager.labels" . | nindent 4 }}
+    app.kubernetes.io/component: frontend-user
+spec:
+  secretName: {{ include "oidc-vpn-manager.frontend.fullname" . }}-user-app-tls
+  issuerRef:
+    name: {{ .Values.applicationTls.certManager.issuerRef.name }}
+    kind: {{ .Values.applicationTls.certManager.issuerRef.kind | default "ClusterIssuer" }}
+  dnsNames:
+    - {{ include "oidc-vpn-manager.frontend.fullname" . }}-user
+    - {{ include "oidc-vpn-manager.frontend.fullname" . }}-user.{{ .Release.Namespace }}.svc
+    - {{ include "oidc-vpn-manager.frontend.fullname" . }}-user.{{ .Release.Namespace }}.svc.cluster.local
+{{- end }}
+
+{{- if and .Values.frontend.enabled .Values.frontend.adminService.enabled }}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ include "oidc-vpn-manager.frontend.fullname" . }}-admin-app-tls
+  labels:
+    {{- include "oidc-vpn-manager.labels" . | nindent 4 }}
+    app.kubernetes.io/component: frontend-admin
+spec:
+  secretName: {{ include "oidc-vpn-manager.frontend.fullname" . }}-admin-app-tls
+  issuerRef:
+    name: {{ .Values.applicationTls.certManager.issuerRef.name }}
+    kind: {{ .Values.applicationTls.certManager.issuerRef.kind | default "ClusterIssuer" }}
+  dnsNames:
+    - {{ include "oidc-vpn-manager.frontend.fullname" . }}-admin
+    - {{ include "oidc-vpn-manager.frontend.fullname" . }}-admin.{{ .Release.Namespace }}.svc
+    - {{ include "oidc-vpn-manager.frontend.fullname" . }}-admin.{{ .Release.Namespace }}.svc.cluster.local
+{{- end }}
+
+{{- if .Values.signing.enabled }}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ include "oidc-vpn-manager.signing.fullname" . }}-app-tls
+  labels:
+    {{- include "oidc-vpn-manager.labels" . | nindent 4 }}
+    app.kubernetes.io/component: signing
+spec:
+  secretName: {{ include "oidc-vpn-manager.signing.fullname" . }}-app-tls
+  issuerRef:
+    name: {{ .Values.applicationTls.certManager.issuerRef.name }}
+    kind: {{ .Values.applicationTls.certManager.issuerRef.kind | default "ClusterIssuer" }}
+  dnsNames:
+    - {{ include "oidc-vpn-manager.signing.fullname" . }}
+    - {{ include "oidc-vpn-manager.signing.fullname" . }}.{{ .Release.Namespace }}.svc
+    - {{ include "oidc-vpn-manager.signing.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local
+{{- end }}
+
+{{- if .Values.certtransparency.enabled }}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ include "oidc-vpn-manager.certtransparency.fullname" . }}-app-tls
+  labels:
+    {{- include "oidc-vpn-manager.labels" . | nindent 4 }}
+    app.kubernetes.io/component: certtransparency
+spec:
+  secretName: {{ include "oidc-vpn-manager.certtransparency.fullname" . }}-app-tls
+  issuerRef:
+    name: {{ .Values.applicationTls.certManager.issuerRef.name }}
+    kind: {{ .Values.applicationTls.certManager.issuerRef.kind | default "ClusterIssuer" }}
+  dnsNames:
+    - {{ include "oidc-vpn-manager.certtransparency.fullname" . }}
+    - {{ include "oidc-vpn-manager.certtransparency.fullname" . }}.{{ .Release.Namespace }}.svc
+    - {{ include "oidc-vpn-manager.certtransparency.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local
+{{- end }}
+
+{{- end }}

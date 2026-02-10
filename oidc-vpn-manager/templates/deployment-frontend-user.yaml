@@ -42,13 +42,14 @@ spec:
           image: {{ include "oidc-vpn-manager.image" (dict "registry" .Values.image.registry "repository" .Values.image.repository "component" "frontend" "tag" .Values.frontend.image.tag "Chart" .Chart "Values" .Values) }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
-            - name: http
+            - name: {{ if .Values.applicationTls.enabled }}https{{ else }}http{{ end }}
               containerPort: {{ .Values.frontend.service.port }}
               protocol: TCP
           livenessProbe:
             httpGet:
               path: /health
-              port: http
+              port: {{ if .Values.applicationTls.enabled }}https{{ else }}http{{ end }}
+              scheme: {{ if .Values.applicationTls.enabled }}HTTPS{{ else }}HTTP{{ end }}
             initialDelaySeconds: 30
             periodSeconds: 30
             timeoutSeconds: 10
@@ -56,7 +57,8 @@ spec:
           readinessProbe:
             httpGet:
               path: /health
-              port: http
+              port: {{ if .Values.applicationTls.enabled }}https{{ else }}http{{ end }}
+              scheme: {{ if .Values.applicationTls.enabled }}HTTPS{{ else }}HTTP{{ end }}
             initialDelaySeconds: 30
             periodSeconds: 10
             timeoutSeconds: 30
@@ -74,14 +76,14 @@ spec:
             - name: LOG_LEVEL
               value: {{ .Values.frontend.config.logLevel | quote }}
             - name: SIGNING_SERVICE_URL
-              value: "http://{{ include "oidc-vpn-manager.signing.fullname" . }}:{{ .Values.signing.service.port }}"
+              value: "{{ if .Values.applicationTls.enabled }}https{{ else }}http{{ end }}://{{ include "oidc-vpn-manager.signing.fullname" . }}:{{ .Values.signing.service.port }}"
             - name: SIGNING_SERVICE_API_SECRET
               valueFrom:
                 secretKeyRef:
                   name: {{ .Values.secrets.signingApiSecret.name | default (printf "%s-signing-api-secret" (include "oidc-vpn-manager.fullname" .)) }}
                   key: {{ .Values.secrets.signingApiSecret.key | default "api-secret" }}
             - name: CERTTRANSPARENCY_SERVICE_URL
-              value: "http://{{ include "oidc-vpn-manager.certtransparency.fullname" . }}:{{ .Values.certtransparency.service.port }}/api/v1"
+              value: "{{ if .Values.applicationTls.enabled }}https{{ else }}http{{ end }}://{{ include "oidc-vpn-manager.certtransparency.fullname" . }}:{{ .Values.certtransparency.service.port }}/api/v1"
             - name: OIDC_DISCOVERY_URL
               value: {{ .Values.frontend.config.oidc.discoveryUrl | quote }}
             - name: OIDC_CLIENT_ID
@@ -121,6 +123,35 @@ spec:
             - name: OPENVPN_TLS_CRYPT_KEY_FILE
               value: "/app/tls-crypt/tls-crypt.key"
             {{- end }}
+            - name: ENABLE_APPLICATION_TLS
+              value: {{ .Values.applicationTls.enabled | quote }}
+            {{- if .Values.applicationTls.certManager.enabled }}
+            - name: APPLICATION_TLS_CERT
+              value: "/app/tls/tls.crt"
+            - name: APPLICATION_TLS_KEY
+              value: "/app/tls/tls.key"
+            {{- else if .Values.applicationTls.enabled }}
+            - name: APPLICATION_TLS_CERT
+              value: {{ .Values.applicationTls.certPath | quote }}
+            - name: APPLICATION_TLS_KEY
+              value: {{ .Values.applicationTls.keyPath | quote }}
+            {{- end }}
+            {{- if .Values.applicationTls.caCertPath }}
+            - name: APPLICATION_CA_CERT
+              value: {{ .Values.applicationTls.caCertPath | quote }}
+            {{- end }}
+            {{- if .Values.applicationTls.snakeoil.cn }}
+            - name: APPLICATION_TLS_CN
+              value: {{ .Values.applicationTls.snakeoil.cn | quote }}
+            {{- end }}
+            {{- if .Values.applicationTls.snakeoil.san }}
+            - name: APPLICATION_TLS_SAN
+              value: {{ .Values.applicationTls.snakeoil.san | quote }}
+            {{- end }}
+            - name: SIGNING_SERVICE_URL_TLS_VALIDATE
+              value: {{ .Values.applicationTls.clientValidation.signing | quote }}
+            - name: CERTTRANSPARENCY_SERVICE_URL_TLS_VALIDATE
+              value: {{ .Values.applicationTls.clientValidation.certtransparency | quote }}
           resources:
             {{- toYaml .Values.frontend.resources | nindent 12 }}
           volumeMounts:
@@ -144,6 +175,13 @@ spec:
               readOnly: true
             - name: tmp
               mountPath: /tmp
+            {{- if .Values.applicationTls.enabled }}
+            - name: app-tls
+              mountPath: /app/tls
+              {{- if .Values.applicationTls.certManager.enabled }}
+              readOnly: true
+              {{- end }}
+            {{- end }}
       volumes:
         - name: pki-certs
           secret:
@@ -164,6 +202,15 @@ spec:
             name: {{ include "oidc-vpn-manager.fullname" . }}-openvpn-options
         - name: tmp
           emptyDir: {}
+        {{- if .Values.applicationTls.enabled }}
+        - name: app-tls
+          {{- if .Values.applicationTls.certManager.enabled }}
+          secret:
+            secretName: {{ include "oidc-vpn-manager.frontend.fullname" . }}-user-app-tls
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
+        {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

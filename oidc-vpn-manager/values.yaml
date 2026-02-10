@@ -75,7 +75,6 @@ frontend:
       annotations:
         nginx.ingress.kubernetes.io/ssl-redirect: "true"
         nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
-        nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
         nginx.ingress.kubernetes.io/rate-limit: "100"
         nginx.ingress.kubernetes.io/rate-limit-window: "1m"
         cert-manager.io/cluster-issuer: "letsencrypt-prod"
@@ -94,7 +93,6 @@ frontend:
       annotations:
         nginx.ingress.kubernetes.io/ssl-redirect: "true"
         nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
-        nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
         nginx.ingress.kubernetes.io/rate-limit: "100"
         nginx.ingress.kubernetes.io/rate-limit-window: "1m"
         cert-manager.io/cluster-issuer: "letsencrypt-prod"
@@ -113,7 +111,6 @@ frontend:
       annotations:
         nginx.ingress.kubernetes.io/ssl-redirect: "true"
         nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
-        nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
         nginx.ingress.kubernetes.io/rate-limit: "100"
         nginx.ingress.kubernetes.io/rate-limit-window: "1m"
         cert-manager.io/cluster-issuer: "letsencrypt-prod"
@@ -121,7 +118,7 @@ frontend:
     environment: production
     logLevel: INFO
     siteShortName: "OIDC VPN Manager"
-    forceHttps: false
+    forceHttps: true
     oidc:
       discoveryUrl: "https://your-oidc-provider.com/.well-known/openid-configuration"
       clientId: "your-production-client-id"
@@ -180,6 +177,29 @@ certtransparency:
       name: "ct_db"
       user: "postgres"
 
+# Application-level TLS configuration
+# Enables TLS on the Gunicorn application servers for end-to-end encryption
+applicationTls:
+  enabled: true     # Maps to ENABLE_APPLICATION_TLS env var
+  # cert-manager integration for automated certificate provisioning
+  certManager:
+    enabled: false  # When false, snakeoil certs are auto-generated at startup
+    issuerRef:
+      name: "letsencrypt-prod"
+      kind: "ClusterIssuer"
+  # Certificate paths inside the container
+  certPath: /app/tls/application.crt
+  keyPath: /app/tls/application.key
+  # Optional CA certificate for chain serving (concatenated with server cert)
+  caCertPath: ""
+  # Snakeoil certificate configuration (used when certManager is disabled)
+  snakeoil:
+    cn: ""    # Default: container hostname
+    san: ""   # Default: container hostname; comma-separated DNS names or IPs
+  # Client-side TLS validation for inter-service HTTP calls
+  clientValidation:
+    signing: true           # Maps to SIGNING_SERVICE_URL_TLS_VALIDATE
+    certtransparency: true  # Maps to CERTTRANSPARENCY_SERVICE_URL_TLS_VALIDATE
 
 # Legacy ingress configuration (replaced by individual service ingresses)
 # ingress:

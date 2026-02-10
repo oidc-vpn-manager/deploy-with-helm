@@ -12,10 +12,13 @@ metadata:
   name: {{ $fullName }}-combined
   labels:
     {{- include "oidc-vpn-manager.labels" . | nindent 4 }}
-  {{- with .Values.frontend.combinedService.ingress.annotations }}
   annotations:
+    {{- if .Values.applicationTls.enabled }}
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+    {{- end }}
+    {{- with .Values.frontend.combinedService.ingress.annotations }}
     {{- toYaml . | nindent 4 }}
-  {{- end }}
+    {{- end }}
 spec:
   {{- if and .Values.frontend.combinedService.ingress.className (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion) }}
   ingressClassName: {{ .Values.frontend.combinedService.ingress.className }}
@@ -59,10 +62,13 @@ metadata:
   name: {{ $fullName }}-user
   labels:
     {{- include "oidc-vpn-manager.labels" . | nindent 4 }}
-  {{- with .Values.frontend.userService.ingress.annotations }}
   annotations:
+    {{- if .Values.applicationTls.enabled }}
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+    {{- end }}
+    {{- with .Values.frontend.userService.ingress.annotations }}
     {{- toYaml . | nindent 4 }}
-  {{- end }}
+    {{- end }}
 spec:
   {{- if and .Values.frontend.userService.ingress.className (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion) }}
   ingressClassName: {{ .Values.frontend.userService.ingress.className }}
@@ -106,10 +112,13 @@ metadata:
   name: {{ $fullName }}-admin
   labels:
     {{- include "oidc-vpn-manager.labels" . | nindent 4 }}
-  {{- with .Values.frontend.adminService.ingress.annotations }}
   annotations:
+    {{- if .Values.applicationTls.enabled }}
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+    {{- end }}
+    {{- with .Values.frontend.adminService.ingress.annotations }}
     {{- toYaml . | nindent 4 }}
-  {{- end }}
+    {{- end }}
 spec:
   {{- if and .Values.frontend.adminService.ingress.className (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion) }}
   ingressClassName: {{ .Values.frontend.adminService.ingress.className }}
