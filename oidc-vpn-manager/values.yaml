@@ -136,7 +136,7 @@ signing:
   replicaCount: 2
   image:
     repository: signing
-    tag: v1.1.4
+    tag: v1.1.5
   service:
     type: ClusterIP
     port: 8500
