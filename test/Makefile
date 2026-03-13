@@ -24,8 +24,7 @@ deps:
 	@if ! command -v kind >/dev/null 2>&1; then \
 		echo "Installing kind..."; \
 		curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.20.0/kind-linux-amd64; \
-		chmod +x ./kind; \
-		sudo mv ./kind /usr/local/bin/kind; \
+		sudo install -o root -g root -m 0755 ./kind /usr/local/bin/kind; \
 	fi
 	@if ! command -v helm >/dev/null 2>&1; then \
 		echo "Installing helm..."; \
