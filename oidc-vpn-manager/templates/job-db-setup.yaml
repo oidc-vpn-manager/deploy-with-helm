@@ -103,6 +103,7 @@ spec:
         {{- if or (and .Values.frontend.enabled .Values.frontend.adminService.enabled) (and .Values.frontend.enabled .Values.frontend.userService.enabled) }}
         - name: frontend-migration
           image: {{ include "oidc-vpn-manager.image" (dict "registry" .Values.image.registry "repository" .Values.image.repository "component" "frontend" "tag" .Values.frontend.image.tag "Chart" .Chart "Values" .Values) }}
+          imagePullPolicy: Always
           command: ["./run_migrate.sh"]
           env:
             - name: ENVIRONMENT
@@ -131,6 +132,7 @@ spec:
         {{- if .Values.certtransparency.enabled }}
         - name: certtransparency-migration
           image: {{ include "oidc-vpn-manager.image" (dict "registry" .Values.image.registry "repository" .Values.image.repository "component" "certtransparency" "tag" .Values.certtransparency.image.tag "Chart" .Chart "Values" .Values) }}
+          imagePullPolicy: Always
           command: ["./run_migrate.sh"]
           env:
             - name: ENVIRONMENT
