@@ -107,6 +107,8 @@ spec:
           env:
             - name: ENVIRONMENT
               value: {{ .Values.frontend.config.environment | quote }}
+            - name: OVPN_TEMPLATE_PATH
+              value: ""
             - name: DATABASE_URL
               valueFrom:
                 secretKeyRef:
