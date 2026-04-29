@@ -47,7 +47,7 @@ frontend:
   replicaCount: 2
   image:
     repository: frontend
-    tag: v2.0.0
+    tag: v2.1.0
   service:
     type: ClusterIP
     port: 8600
